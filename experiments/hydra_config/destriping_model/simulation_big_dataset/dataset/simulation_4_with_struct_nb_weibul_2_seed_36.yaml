@@ -1,0 +1,5 @@
+defaults:
+  - default@_here_
+
+path_data: "results/benchmark_destriping_model/simulation_generate_data_sweep/big_with_n_counts_structure_weibul_nb/2026-01-14/11-54-35/0__simulation_params.random_seed=36/spatial_data"
+big: true

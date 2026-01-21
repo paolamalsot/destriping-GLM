@@ -1,0 +1,16 @@
+defaults:
+  - simulation_params: big_with_n_counts_structure_weibul_nb
+  - _self_
+  - ../../hydra/output_structure/default@_here_
+#  - override hydra/launcher: ../../../../hydra/launcher/cluster_4G
+
+hydra:
+#  launcher:
+#    mem_per_cpu: 50G
+  sweeper:
+    params:
+      simulation_params: big_with_n_counts_structure_weibul_nb
+      simulation_params.random_seed: 44
+
+parsing_fun: experiments.src.custom_destriping_benchmark.simulation_generate_data
+experiment_output_dir: "results/benchmark_destriping_model/simulation_generate_data_sweep/big_with_n_counts_structure_weibul_nb"

@@ -1,0 +1,9 @@
+defaults:
+  - ../sweep@_here_
+  - ../../models/bin_level_normalization@_here_
+  - _self_
+  - override hydra/launcher: ../../../../../../hydra/launcher/cluster_4G
+
+hydra:
+  searchpath:
+    - file://experiments/hydra_config/destriping_model/simulation_big_dataset

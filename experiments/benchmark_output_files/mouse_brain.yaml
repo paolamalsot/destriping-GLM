@@ -1,0 +1,22 @@
+runs:
+  ours: "results/benchmark_destriping_model/mouse_brain_v3/Glum_benchmark_v3/v3/2025-12-30/10-02-15"
+  ours__P2_identity: "results/benchmark_destriping_model/mouse_brain_v2/glum_benchmark_v3/v3_P2=identity/2025-12-29/15-00-53"
+  ours__none_init: "results/benchmark_destriping_model/mouse_brain_v2/glum_benchmark_v3/sensitivity_initialization/v3_none_init/2025-12-29/15-00-43"
+
+dividing_by_ratio_baselines:
+  original: "results/benchmark_destriping_model/mouse_brain_v2/dividing_by_factors/2025-12-19/02-18-00/1__factors=ones"
+  dividing_median_ratio: "results/benchmark_destriping_model/mouse_brain_v2/dividing_by_factors/2025-12-19/02-17-50/0__factors=median_ratio"
+  dividing_median: "results/benchmark_destriping_model/mouse_brain_v2/dividing_by_factors/2025-12-19/02-17-55/0__factors=quantiles"
+  dividing_median_quantile_nucl: "results/benchmark_destriping_model/mouse_brain_v2/dividing_by_factors/2025-12-19/02-17-55/1__factors=quantiles_nucl"
+  dividing_99_quantile_nucl: "results/benchmark_destriping_model/mouse_brain_v2/dividing_by_factors/2025-12-19/02-18-00/2__factors=quantiles_nucl"
+  dividing_99_quantile: "results/benchmark_destriping_model/mouse_brain_v2/dividing_by_factors/2025-12-19/02-18-00/0__factors=quantiles"
+
+not_factor_based_baseline:
+  2SN: "results/benchmark_destriping_model/mouse_brain_v2/b2c_destriping/2025-12-19/13-42-27/0__+dataset=mouse_brain"
+  bin_level_normalization: "results/benchmark_destriping_model/mouse_brain_v2/bin_level_normalization/2025-12-19/02-18-05"
+
+supp_baselines_dir: null
+output_dir: "results/benchmark_destriping_model/mouse_brain_v2/analysis/2025-12-30/11-31-00"
+
+supp_publi_output_folder: "results/publication_oup_vrepro/mouse_brain/supp"
+main_publi_output_folder: "results/publication_oup_vrepro/mouse_brain/main"

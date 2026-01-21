@@ -1,0 +1,7 @@
+model_name: b2c_destriping
+parsing_fun: experiments.src.custom_destriping_benchmark.baselines.b2c_destriping_lightweight
+
+#hydra:
+#  launcher:
+#    mem_per_cpu: 10G
+#    timeout_min: 30

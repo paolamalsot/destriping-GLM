@@ -1,0 +1,23 @@
+runs:
+  ours: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/glum_benchmark_v3/v3/2026-01-14/15-31-37/0__dataset=simulation_4_with_struct_nb_weibul_2_seed_36"
+  ours__P2_identity: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/glum_benchmark_v3/v3_P2=identity/2026-01-14/15-31-47/0__dataset=simulation_4_with_struct_nb_weibul_2_seed_36"
+#  ours__none_init: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/glum_benchmark_v3/sensitivity_initialization/v3_none_init/2026-01-14/15-31-42/0__dataset=simulation_4_with_struct_nb_weibul_2_seed_36" #-> did not converge in given time...
+  ours__none_init: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/glum_benchmark_v3/sensitivity_initialization/v3_none_init/2026-01-18/15-01-56/0__dataset=simulation_4_with_struct_nb_weibul_2_seed_36"
+
+dividing_by_ratio_baselines:
+  original: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/dividing_by_factors/2026-01-14/14-38-20/1__factors=ones"
+  dividing_median_ratio: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/dividing_by_factors/2026-01-14/14-38-10/0__factors=median_ratio"
+  dividing_median: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/dividing_by_factors/2026-01-14/14-38-15/0__factors=quantiles"
+  dividing_median_quantile_nucl: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/dividing_by_factors/2026-01-14/14-38-15/1__factors=quantiles_nucl"
+  dividing_99_quantile_nucl: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/dividing_by_factors/2026-01-14/14-38-20/2__factors=quantiles_nucl"
+  dividing_99_quantile: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/dividing_by_factors/2026-01-14/14-38-20/0__factors=quantiles"
+
+not_factor_based_baseline:
+  2SN: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/b2c_destriping/2026-01-18/13-42-35/0__dataset=simulation_4_with_struct_nb_weibul_2_seed_36"
+  bin_level_normalization: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/bin_level_normalization/2026-01-14/14-59-06/0__dataset=simulation_4_with_struct_nb_weibul_2_seed_36"
+
+supp_baselines_dir: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/additional_baselines/2026-01-18/13-42-40/0__dataset=simulation_4_with_struct_nb_weibul_2_seed_36"
+output_dir: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/analysis_glum_benchmark_v3_seed_2/2026-01-18/13-15-00"
+
+supp_publi_output_folder: "results/publication_oup_v2/simulation_brain_seed_2/supp"
+main_publi_output_folder: "results/publication_oup_v2/simulation_brain_seed_2/main"

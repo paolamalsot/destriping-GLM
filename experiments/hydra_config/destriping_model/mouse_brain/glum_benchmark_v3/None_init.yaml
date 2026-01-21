@@ -1,0 +1,20 @@
+defaults:
+  - ../models/glum/v3@_here_
+  - ../sweep@_here_
+  - _self_
+  - override hydra/launcher: ../../../../../hydra/launcher/cluster_4G
+
+experiment_output_dir: results/benchmark_destriping_model/mouse_brain_v2/glum_benchmark_v3/sensitivity_initialization/v3_none_init
+
+parsing_fun: experiments.src.custom_destriping_benchmark.fit_glum
+
+model_args:
+  init_method: null
+
+hydra:
+  launcher:
+    mem_per_cpu: 10G
+    timeout_min: 660
+
+  searchpath:
+    - file://experiments/hydra_config/destriping_model/mouse_brain_v2

@@ -1,0 +1,12 @@
+quant_init: 0.5
+factors: null
+
+hydra:
+  sweeper:
+    params:
+      factors: quantiles,quantiles_nucl
+  sweep:
+    subdir: ${hydra.job.num}__factors=${factors}
+
+model_name: dividing_by_factors
+parsing_fun: experiments.src.custom_destriping_benchmark.baselines.dividing_by_factors_lightweight

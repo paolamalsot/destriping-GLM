@@ -1,0 +1,10 @@
+model_name: bin_level_normalization
+parsing_fun: experiments.src.custom_destriping_benchmark.baselines.bin_level_normalization_lightweight
+model_args:
+  quantile: 0.5
+  nucl_only: true
+  
+#hydra:
+#  launcher:
+#    mem_per_cpu: 10G
+#    timeout_min: 30

@@ -1,0 +1,10 @@
+defaults:
+  - ../sweep@_here_
+  - ../models/b2c_destriping@_here_
+  - _self_
+  - override hydra/launcher: ../../../../../hydra/launcher/cluster_4G
+
+hydra:
+  searchpath:
+    - file://experiments/hydra_config/destriping_model/mouse_embryo
+  

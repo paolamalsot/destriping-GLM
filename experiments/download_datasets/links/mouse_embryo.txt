@@ -1,0 +1,3 @@
+https://cf.10xgenomics.com/samples/spatial-exp/4.0.1/Visium_HD_3prime_Mouse_Embryo/Visium_HD_3prime_Mouse_Embryo_binned_outputs.tar.gz
+https://cf.10xgenomics.com/samples/spatial-exp/4.0.1/Visium_HD_3prime_Mouse_Embryo/Visium_HD_3prime_Mouse_Embryo_barcode_mappings.parquet
+https://cf.10xgenomics.com/samples/spatial-exp/4.0.1/Visium_HD_3prime_Mouse_Embryo/Visium_HD_3prime_Mouse_Embryo_tissue_image.btf

@@ -1,0 +1,14 @@
+results
+.vscode
+results/
+figures/
+outfiles/
+data/
+.DS_Store
+docs/_build
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.so
+.pixi/

@@ -1,0 +1,19 @@
+#!/bin/bash
+source ../../../utilities/launching_hydra_sweep.sh
+
+multirun destriping_model/simulation_big_dataset/big_with_struct_nb_weibul_other_seeds/baselines/dividing_by_factors_ratio &
+sleep 5
+multirun destriping_model/simulation_big_dataset/big_with_struct_nb_weibul_other_seeds/baselines/dividing_by_factors_median.yaml &
+sleep 5
+multirun destriping_model/simulation_big_dataset/big_with_struct_nb_weibul_other_seeds/baselines//dividing_by_factors &
+sleep 5
+multirun destriping_model/simulation_big_dataset/big_with_struct_nb_weibul_other_seeds/baselines//bin_level_normalization.yaml &
+sleep 5
+multirun destriping_model/simulation_big_dataset/big_with_struct_nb_weibul_other_seeds/glum_benchmark_v3/v3 &
+sleep 5
+multirun destriping_model/simulation_big_dataset/big_with_struct_nb_weibul_other_seeds/glum_benchmark_v3/None_init &
+sleep 5
+multirun destriping_model/simulation_big_dataset/big_with_struct_nb_weibul_other_seeds/baselines/b2c_destriping &
+sleep 5
+multirun destriping_model/simulation_big_dataset/big_with_struct_nb_weibul_other_seeds/baselines/additional_baselines &
+sleep 20

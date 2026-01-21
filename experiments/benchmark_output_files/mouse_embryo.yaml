@@ -1,0 +1,22 @@
+runs:
+  ours: "results/benchmark_destriping_model/mouse_embryo/Glum_benchmark_v3/v3/2026-01-09/14-31-07/0__+dataset=mouse_embryo"
+  ours__P2_identity: "results/benchmark_destriping_model/mouse_embryo/glum_benchmark_v3/v3_P2=identity/2026-01-17/23-30-39"
+  # ours__none_init did not converge
+
+dividing_by_ratio_baselines:
+  original: "results/benchmark_destriping_model/mouse_embryo/dividing_by_factors/2026-01-09/11-52-26/1__factors=ones"
+  dividing_median_ratio: "results/benchmark_destriping_model/mouse_embryo/dividing_by_factors/2026-01-09/11-52-17/0__factors=median_ratio"
+  dividing_median: "results/benchmark_destriping_model/mouse_embryo/dividing_by_factors/2026-01-09/11-52-21/0__factors=quantiles"
+  dividing_median_quantile_nucl: "results/benchmark_destriping_model/mouse_embryo/dividing_by_factors/2026-01-09/11-52-21/1__factors=quantiles_nucl"
+  dividing_99_quantile_nucl: "results/benchmark_destriping_model/mouse_embryo/dividing_by_factors/2026-01-09/11-52-26/2__factors=quantiles_nucl"
+  dividing_99_quantile: "results/benchmark_destriping_model/mouse_embryo/dividing_by_factors/2026-01-09/11-52-26/0__factors=quantiles"
+
+not_factor_based_baseline:
+  2SN: "results/benchmark_destriping_model/mouse_embryo/b2c_destriping/2026-01-09/11-52-17/0__+dataset=mouse_embryo"
+  bin_level_normalization: "results/benchmark_destriping_model/mouse_embryo/bin_level_normalization/2026-01-09/11-52-31/0__+dataset=mouse_embryo"
+
+supp_baselines_dir: null
+output_dir: "results/benchmark_destriping_model/mouse_embryo/analysis/2025-01-10/22-00-00"
+
+supp_publi_output_folder: "results/publication_oup_v2/mouse_embryo/supp"
+main_publi_output_folder: "results/publication_oup_v2/mouse_embryo/main"

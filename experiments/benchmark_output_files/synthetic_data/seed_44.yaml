@@ -1,0 +1,22 @@
+runs:
+  ours: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/Glum_benchmark_v3/v3/2025-12-29/14-57-24"
+  ours__P2_identity: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/glum_benchmark_v3/v3_P2=identity/2025-12-29/14-57-29"
+  ours__none_init: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/glum_benchmark_v3/sensitivity_initialization/v3_none_init/2025-12-29/14-57-19"
+
+dividing_by_ratio_baselines:
+  original: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/dividing_by_factors/2025-12-17/11-33-45/1__factors=ones"
+  dividing_median_ratio: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/dividing_by_factors/2025-12-17/11-31-32/0__factors=median_ratio"
+  dividing_median: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/dividing_by_factors/2025-12-17/11-32-22/0__factors=quantiles"
+  dividing_median_quantile_nucl: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/dividing_by_factors/2025-12-17/11-32-22/1__factors=quantiles_nucl"
+  dividing_99_quantile_nucl: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/dividing_by_factors/2025-12-17/11-33-45/2__factors=quantiles_nucl"
+  dividing_99_quantile: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/dividing_by_factors/2025-12-17/11-33-45/0__factors=quantiles"
+
+not_factor_based_baseline:
+  "2SN": "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/b2c_destriping/2025-10-13/22-16-31/0__+dataset=simulation_4_with_struct_nb_weibul_2"
+  bin_level_normalization: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/bin_level_normalization/2025-12-16/12-51-34/0__+dataset=simulation_4_with_struct_nb_weibul_2"
+
+supp_baselines_dir: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/additional_baselines/2025-10-13/22-16-41/0__+dataset=simulation_4_with_struct_nb_weibul_2"
+output_dir: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/analysis_glum_benchmark_v3/2026-01-01/18-26-00"
+
+supp_publi_output_folder: "results/publication_oup_v2/simulation_brain/supp"
+main_publi_output_folder: "results/publication_oup_v2/simulation_brain/main"
