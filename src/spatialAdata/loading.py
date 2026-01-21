@@ -13,9 +13,7 @@ from src.spatialAdata.spatialAdata import spatialAdata
 from src.utilities.df_unique_keys import img_df, coordinates_df
 
 
-def load_visium_hd(
-    path, source_image_path, count_file="filtered_feature_bc_matrix.h5"
-):
+def load_visium_hd(path, source_image_path, count_file="filtered_feature_bc_matrix.h5"):
     """
     Creates a spatialAdata object from reading the folder and the source image path.
     Very similar to bin2cell's read_visium function
@@ -64,7 +62,7 @@ def load_visium_hd(
                 )
             else:
                 raise OSError(f"Could not find '{f}'")
-    adata.uns["spatial"] = {library_id:{}}
+    adata.uns["spatial"] = {library_id: {}}
     adata.uns["spatial"][library_id]["images"] = dict()
     for res in ["hires", "lowres"]:
         try:
@@ -110,20 +108,23 @@ def load_visium_hd(
     # fill the obsm with our first coordinates. The first coordinate denotes the vertical axis, and the second the horizonatal axis.
 
     adata.obsm["coords__fullres"] = adata.obs[
-        ["pxl_col_in_fullres", "pxl_row_in_fullres"] #changed this; apparently there was a mistake ?
+        [
+            "pxl_col_in_fullres",
+            "pxl_row_in_fullres",
+        ]  # changed this; apparently there was a mistake ?
     ].to_numpy()  # instead of "spatial" which does not mean anything
 
     coords_array = adata.obs[
         [
             "array_row",
             "array_col",
-        ]  
+        ]
     ].to_numpy()
 
-    #convert it to left_to_right
-    #max_array_col = max(np.max(coords_array[:,1]), 3349)
+    # convert it to left_to_right
+    # max_array_col = max(np.max(coords_array[:,1]), 3349)
     # the reason for the max is that in the step where we produce a gex image to input to stardist, the border around probably influences the stardist output...
-    #coords_array[:,1] = max_array_col - coords_array[:,1]
+    # coords_array[:,1] = max_array_col - coords_array[:,1]
     coords_array = reorient_coords(coords_array, adata.obsm["coords__fullres"])
     adata.obsm["coords__array"] = coords_array
     adata.obs[["array_row", "array_col"]] = adata.obsm["coords__array"]
@@ -153,7 +154,7 @@ def load_visium_hd(
         # indeed full_res are coordinates wrt full resolution image !
         "scalefactor": adata.uns["spatial"][library_id]["scalefactors"][
             "tissue_hires_scalef"
-        ]
+        ],
     }
 
     fullres_lowres_coordinates = {
@@ -162,44 +163,54 @@ def load_visium_hd(
         # indeed full_res are coordinates wrt full resolution image !
         "scalefactor": adata.uns["spatial"][library_id]["scalefactors"][
             "tissue_lowres_scalef"
-        ]
+        ],
     }
 
-    spots_coordinates = {
-        "coordinate_id": "array",
-        "img_key": None,
-        "scalefactor": 1.0
-    }
+    spots_coordinates = {"coordinate_id": "array", "img_key": None, "scalefactor": 1.0}
 
     coordinates_df_ = coordinates_df.from_records(
-        [fullres_fullres_coordinates, fullres_hires_coordinates, fullres_lowres_coordinates, spots_coordinates]
+        [
+            fullres_fullres_coordinates,
+            fullres_hires_coordinates,
+            fullres_lowres_coordinates,
+            spots_coordinates,
+        ]
     )
 
-    fullres_img = {"img_key": "fullres",
-                   "in_memory": False,
-                   "path": source_image_path,
-                   "scalefactor": 1.0}
-    hires_img = {"img_key": "hires",
-                 "in_memory": True,
-                 "path": None,
-                 "scalefactor": adata.uns["spatial"][library_id]["scalefactors"][
-            "tissue_hires_scalef"]}
-    lowres_img = {"img_key": "lowres",
-                  "in_memory": True,
-                  "path": None,
-                  "scalefactor": adata.uns["spatial"][library_id]["scalefactors"][
-            "tissue_lowres_scalef"]}
+    fullres_img = {
+        "img_key": "fullres",
+        "in_memory": False,
+        "path": source_image_path,
+        "scalefactor": 1.0,
+    }
+    hires_img = {
+        "img_key": "hires",
+        "in_memory": True,
+        "path": None,
+        "scalefactor": adata.uns["spatial"][library_id]["scalefactors"][
+            "tissue_hires_scalef"
+        ],
+    }
+    lowres_img = {
+        "img_key": "lowres",
+        "in_memory": True,
+        "path": None,
+        "scalefactor": adata.uns["spatial"][library_id]["scalefactors"][
+            "tissue_lowres_scalef"
+        ],
+    }
 
     img_df_ = img_df.from_records([fullres_img, hires_img, lowres_img])
 
-    #make unique variable names
+    # make unique variable names
     adata.var_names_make_unique()
 
-    return spatialAdata(adata, library_id, coordinate_df=coordinates_df_, img_df = img_df_)
+    return spatialAdata(
+        adata, library_id, coordinate_df=coordinates_df_, img_df=img_df_
+    )
 
 
 def load_spatialAdata(input_dir):
-
     # Load the .h5ad file into the adata attribute
     adata = anndata.read_h5ad(os.path.join(input_dir, "adata.h5ad"))
 
@@ -210,5 +221,7 @@ def load_spatialAdata(input_dir):
     # Load the library_id from the data_list.json file
     with open(os.path.join(input_dir, "spatial_adata_attributes.json"), "r") as file:
         attributes = json.load(file)
-    
-    return spatialAdata(adata, coordinate_df=coordinates_df_, img_df = img_df_, **attributes)
+
+    return spatialAdata(
+        adata, coordinate_df=coordinates_df_, img_df=img_df_, **attributes
+    )

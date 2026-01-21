@@ -4,10 +4,11 @@ from matplotlib.collections import PatchCollection
 from matplotlib.patches import Rectangle
 
 # Import the module
-module = importlib.import_module('scanpy.plotting._tools.scatterplots')
+module = importlib.import_module("scanpy.plotting._tools.scatterplots")
 
 # Manually update globals with all attributes from the module, including private ones
 globals().update({k: v for k, v in vars(module).items()})
+
 
 def squares(
     x, y, *, s, ax, marker=None, c="b", vmin=None, vmax=None, scale_factor=1.0, **kwargs
@@ -57,7 +58,7 @@ def squares(
         x = x * scale_factor
         y = y * scale_factor
     zipped = np.broadcast(x, y, s)
-    patches = [Rectangle((x_, y_), 2*s_, 2*s_) for x_, y_, s_ in zipped]
+    patches = [Rectangle((x_, y_), 2 * s_, 2 * s_) for x_, y_, s_ in zipped]
     collection = PatchCollection(patches, **kwargs)
     if isinstance(c, np.ndarray) and np.issubdtype(c.dtype, np.number):
         collection.set_array(np.ma.masked_invalid(c))
@@ -68,6 +69,7 @@ def squares(
     ax.add_collection(collection)
 
     return collection
+
 
 def embedding(
     adata: AnnData,
@@ -479,6 +481,7 @@ def embedding(
         return None
     return axs
 
+
 def spatial(
     adata: AnnData,
     *,
@@ -584,7 +587,7 @@ def spatial(
             ax.imshow(img, cmap=cmap_img, alpha=alpha_img)
         else:
             ax.set_aspect("equal")
-            #ax.invert_yaxis()
+            # ax.invert_yaxis()
             y_min, y_max = ax.get_ylim()
             ax.set_ylim(max(y_min, y_max), min(y_min, y_max))
         if crop_coord is not None:
@@ -592,7 +595,9 @@ def spatial(
             ax.set_ylim(crop_coord[3], crop_coord[2])
         else:
             ax.set_xlim(cur_coords[0], cur_coords[1])
-            ax.set_ylim(max(cur_coords[3], cur_coords[2]), min(cur_coords[3], cur_coords[2]))
+            ax.set_ylim(
+                max(cur_coords[3], cur_coords[2]), min(cur_coords[3], cur_coords[2])
+            )
     _utils.savefig_or_show("show", show=show, save=save)
     if return_fig:
         return axs[0].figure

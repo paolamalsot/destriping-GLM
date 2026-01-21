@@ -1,7 +1,12 @@
 from __future__ import annotations
 from src.destriping.GLUM.custom_regressors.cv_regressor import CustomCVRegressor
-from src.destriping.GLUM.custom_regressors.helpers import remove_prefix_from_kwargs, wrap_dict_with_prefix
-from src.destriping.GLUM.custom_regressors.iterative_theta_regressor import IterativeThetaGLM
+from src.destriping.GLUM.custom_regressors.helpers import (
+    remove_prefix_from_kwargs,
+    wrap_dict_with_prefix,
+)
+from src.destriping.GLUM.custom_regressors.iterative_theta_regressor import (
+    IterativeThetaGLM,
+)
 import logging
 from typing import TypeAlias
 from typing import Type, TypeAlias
@@ -26,8 +31,8 @@ from src.destriping.GLUM.custom_regressors.warm_start_wrapper import WarmStartWr
 
 logger = logging.getLogger("Iterative Theta After CV")
 
-class IterativeThetaAfterCVRegressor():
 
+class IterativeThetaAfterCVRegressor:
     def __init__(
         self,
         param_grid,
@@ -39,7 +44,7 @@ class IterativeThetaAfterCVRegressor():
         delta_theta_thresh=10 ** (-3),
         theta_max_iter=3,
         theta_init=1.0,
-        **regressor_args
+        **regressor_args,
     ):
         self.param_grid = param_grid
         self.one_SE_rule = one_SE_rule
@@ -66,7 +71,6 @@ class IterativeThetaAfterCVRegressor():
         sample_weight: Optional[ArrayLike] = None,
         offset: Optional[ArrayLike] = None,
     ):
-
         # set initial theta
 
         regressor_args = self.update_regressor_args(self.theta_init)
@@ -75,18 +79,16 @@ class IterativeThetaAfterCVRegressor():
         logger.debug(f"Setting initial theta to {self.theta_init}")
         logger.debug(f"Launching CV")
         self.CV_regressor = CustomCVRegressor(
-                                         param_grid=self.param_grid,
-                                         one_SE_rule=self.one_SE_rule,
-                                         regressor_class=self.regressor_class,
-                                         cv = self.cv,
-                                         warm_start_alpha=self.warm_start_alpha,
-                                         parallel = self.parallel,
-                                         **wrap_dict_with_prefix(self.regressor_args, "regressor"))
+            param_grid=self.param_grid,
+            one_SE_rule=self.one_SE_rule,
+            regressor_class=self.regressor_class,
+            cv=self.cv,
+            warm_start_alpha=self.warm_start_alpha,
+            parallel=self.parallel,
+            **wrap_dict_with_prefix(self.regressor_args, "regressor"),
+        )
 
-        self.CV_regressor.fit(X=X,
-                         y = y,
-                         sample_weight=sample_weight,
-                         offset=offset)
+        self.CV_regressor.fit(X=X, y=y, sample_weight=sample_weight, offset=offset)
 
         # set a iterative theta regressor with the best_regressor_params
         regressor_args = {**self.regressor_args, **self.CV_regressor.best_glm_params}
@@ -115,7 +117,7 @@ class IterativeThetaAfterCVRegressor():
             regressor_class=regressor_class,
             theta_init=self.theta_init,
             family_arg_name=family_arg_name,
-            ** wrap_dict_with_prefix(regressor_args_f, "regressor"),
+            **wrap_dict_with_prefix(regressor_args_f, "regressor"),
         )
         self.iterative_theta_regressor.fit(
             X=X, y=y, sample_weight=sample_weight, offset=offset

@@ -1,8 +1,5 @@
 from utilities.are_we_in_cluster import run_script_with_runpy
-from src.utilities.submitit.parallel_executor import (
-    setup_executor,
-    on_cluster
-)
+from src.utilities.submitit.parallel_executor import setup_executor, on_cluster
 import datetime
 from functools import partial
 import yaml
@@ -13,9 +10,15 @@ import os
 
 # Parsing params
 parser = argparse.ArgumentParser(description="Run a script locally or on a cluster.")
-parser.add_argument("--script_path", type=str, required=True, help="Path to the script to be executed.")
-parser.add_argument("--cluster_config", type=str, default="experiments/utilities/default_submitit_executor.yaml", 
-                    help="Path to the YAML config for cluster execution.")
+parser.add_argument(
+    "--script_path", type=str, required=True, help="Path to the script to be executed."
+)
+parser.add_argument(
+    "--cluster_config",
+    type=str,
+    default="experiments/utilities/default_submitit_executor.yaml",
+    help="Path to the YAML config for cluster execution.",
+)
 args = parser.parse_args()
 
 script_path = args.script_path
@@ -48,6 +51,7 @@ else:
         try:
             # Redirect stdout and stderr
             import sys
+
             sys.stdout = log_file
             sys.stderr = log_file
 

@@ -1,11 +1,13 @@
 from src.spatialAdata.loading import load_spatialAdata
-from experiments.src.custom_destriping_benchmark.lightweight_funs import save_n_counts_adjusted_counts
+from experiments.src.custom_destriping_benchmark.lightweight_funs import (
+    save_n_counts_adjusted_counts,
+)
 import time
 import json
 import os
 
-def parse_config(original_root, cfg):
 
+def parse_config(original_root, cfg):
     data_path = os.path.join(original_root, cfg.dataset.path_data)
     data = load_spatialAdata(data_path)
     data.add_array_coords_to_obs()
@@ -18,6 +20,6 @@ def parse_config(original_root, cfg):
     stop = time.time()
     save_n_counts_adjusted_counts(data, output_dir)
 
-    destriping_time_dict["time_destripe"] = stop-start
+    destriping_time_dict["time_destripe"] = stop - start
     with open("time_dict.json", "w") as json_file:
         json.dump(destriping_time_dict, json_file)

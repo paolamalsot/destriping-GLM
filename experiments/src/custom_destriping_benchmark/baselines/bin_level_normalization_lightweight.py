@@ -8,7 +8,6 @@ import os
 
 
 def parse_config(original_root, cfg):
-
     data_path = os.path.join(original_root, cfg.dataset.path_data)
     cell_id_label = cfg.dataset.cell_id_label
     data = load_spatialAdata(data_path)

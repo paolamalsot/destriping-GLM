@@ -8,12 +8,17 @@ import os
 import numpy as np
 from PIL import Image
 
+
 def auto_figsize(nrows=1, ncols=1, base_width=4, base_height=3):
     return (base_width * ncols, base_height * nrows)
 
-def subplots_autosize(nrows, ncols = 1, base_width=4, base_height=3):
+
+def subplots_autosize(nrows, ncols=1, base_width=4, base_height=3):
     # Example: 2 rows × 3 columns
-    return plt.subplots(nrows, ncols, figsize=auto_figsize(nrows, ncols, base_width, base_height))
+    return plt.subplots(
+        nrows, ncols, figsize=auto_figsize(nrows, ncols, base_width, base_height)
+    )
+
 
 def pad_axes_in_points(ax, pad_left=0, pad_right=0, pad_bottom=0, pad_top=0):
     """
@@ -284,7 +289,7 @@ def break_axes(ax, xlim=None, ylim=None, *, gap=0.03, d=0.015, linewidth=1.0):
     return (ax_tl, ax_tr), (ax_bl, ax_br)
 
 
-def save_plot_interior_tif(fig, ax, save_path, dpi = 300):
+def save_plot_interior_tif(fig, ax, save_path, dpi=300):
     fig.set_dpi(dpi)
 
     fig.canvas.draw()

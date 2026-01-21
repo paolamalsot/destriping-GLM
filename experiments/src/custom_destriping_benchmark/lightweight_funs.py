@@ -1,6 +1,7 @@
 import os
 
-def save_n_counts_adjusted_counts(data, output_dir, supp_columns = None):
+
+def save_n_counts_adjusted_counts(data, output_dir, supp_columns=None):
     data.n_counts
     os.makedirs(output_dir, exist_ok=True)
     cols_to_save = ["n_counts"]
@@ -11,4 +12,4 @@ def save_n_counts_adjusted_counts(data, output_dir, supp_columns = None):
 
     to_save = data.obs[cols_to_save]
     out_path = os.path.join(output_dir, "df.parquet")
-    to_save.to_parquet(out_path, compression='snappy')
+    to_save.to_parquet(out_path, compression="snappy")

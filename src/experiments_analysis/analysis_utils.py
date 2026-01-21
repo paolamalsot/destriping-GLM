@@ -4,13 +4,18 @@ import ast
 import pandas as pd
 from src.destriping.sol import Sol
 from src.destriping.GLUM.sdata_to_df import format_obs_to_df
-from experiments.src.custom_destriping_benchmark.utils import convert_gen_params_to_qm_params, generating_data_distribution
+from experiments.src.custom_destriping_benchmark.utils import (
+    convert_gen_params_to_qm_params,
+    generating_data_distribution,
+)
 from src.spatialAdata.loading import load_spatialAdata
 from pathlib import Path as P
 
-def get_index_gt_destriped(dataset_path, df, gt_destriping_method = "qm"):
+
+def get_index_gt_destriped(dataset_path, df, gt_destriping_method="qm"):
     name_dist, _ = convert_gen_params_to_qm_params(
-        *generating_data_distribution(dataset_path))
+        *generating_data_distribution(dataset_path)
+    )
     model_name = f"GT_{name_dist}_sol"
     destriping_method_full_name = (
         f"destripe_dividing_factors_{gt_destriping_method}_tot_counts"
@@ -19,6 +24,7 @@ def get_index_gt_destriped(dataset_path, df, gt_destriping_method = "qm"):
         "(model_name == @model_name) and (destriping_method == @destriping_method_full_name)"
     ).index[0]
     return index_gt
+
 
 def build_df_from_sdata(dataset_path: str, cell_id_label: str) -> pd.DataFrame:
     """
@@ -80,14 +86,14 @@ def get_cell_id_label(df):
 
 def load_poisson_sol(row):
     poisson_sol_path = row["poisson_sol_path"]
-    if not(pd.isna(poisson_sol_path)):
+    if not (pd.isna(poisson_sol_path)):
         sol = Sol.load(poisson_sol_path)
     else:
         sol = None
     return sol
 
 
-def get_destriped_tot_counts_from_df(df, take_n_counts_adjusted = False):
+def get_destriped_tot_counts_from_df(df, take_n_counts_adjusted=False):
     if take_n_counts_adjusted and "n_counts_adjusted" in df.columns:
         return df["n_counts_adjusted"]
     return df["n_counts"]
@@ -100,6 +106,8 @@ def get_df_destriped_data_from_row(row):
     return df_destriped_data
 
 
-def get_destriped_tot_counts(row, take_n_counts_adjusted = False):
+def get_destriped_tot_counts(row, take_n_counts_adjusted=False):
     df = get_df_destriped_data_from_row(row)
-    return get_destriped_tot_counts_from_df(df, take_n_counts_adjusted = take_n_counts_adjusted)
+    return get_destriped_tot_counts_from_df(
+        df, take_n_counts_adjusted=take_n_counts_adjusted
+    )

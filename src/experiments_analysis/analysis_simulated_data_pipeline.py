@@ -1,5 +1,7 @@
 from pathlib import Path as P
-from src.experiments_analysis.analysis import summarize_poisson_sols_with_metrics_from_runs
+from src.experiments_analysis.analysis import (
+    summarize_poisson_sols_with_metrics_from_runs,
+)
 from src.experiments_analysis.analysis_global_structure import (
     analysis_global_structure,
 )
@@ -13,11 +15,10 @@ from src.experiments_analysis.analysis import (
 from src.utilities.pandas import print_full
 from src.utilities.pandas import print_full
 from src.experiments_analysis.analysis_dist import distance_fun_dict_same_index
-from src.experiments_analysis.analysis import (
-    calc_distance_destriped_data_to_gt
-)
+from src.experiments_analysis.analysis import calc_distance_destriped_data_to_gt
 from pathlib import Path as P
 import pandas as pd
+
 
 def analysis(
     output_dir,
@@ -25,9 +26,8 @@ def analysis(
     dividing_by_ratio_baselines,
     not_factor_based_baseline,
     supp_baselines_dir,
-    synthetic_data = True
+    synthetic_data=True,
 ):
-
     P(output_dir).mkdir(parents=True, exist_ok=True)
     global_structure_analysis_folder = P(output_dir) / "global_structure_analysis"
     global_structure_analysis_folder.mkdir(exist_ok=True, parents=True)

@@ -14,13 +14,15 @@ def get_metrics_dist(fitted_sol, gt_sol, df):
         # make sure that all indices in gt are present -> fill with 1
         missing_indices = param_gt.index.difference(param.index)
         if len(missing_indices) > 0:
-            warnings.warn(f"Metrics: {len(missing_indices)} missing indices in {param_name}. Filling with ones.")
+            warnings.warn(
+                f"Metrics: {len(missing_indices)} missing indices in {param_name}. Filling with ones."
+            )
         filled_param = param.reindex(param_gt.index).fillna(1.0)
         for metric_name, distance_fun in distance_fun_dict.items():
             distance_fun_ = get_distance_fun(metric_name, distance_fun, param_name)
-            metrics[f"distance_to_gt_poisson_sol_{param_name}_{metric_name}"] = (
-                distance_fun_(filled_param, param_gt)
-            )
+            metrics[
+                f"distance_to_gt_poisson_sol_{param_name}_{metric_name}"
+            ] = distance_fun_(filled_param, param_gt)
 
     metrics["distance_to_gt_poisson_sol_hw_euclidian"] = (
         metrics["distance_to_gt_poisson_sol_h_euclidian"] ** 2

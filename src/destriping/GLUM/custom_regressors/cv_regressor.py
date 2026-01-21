@@ -5,8 +5,7 @@ from glum._glm import ArrayLike
 from typing import Optional
 
 
-class CustomCVRegressor():
-
+class CustomCVRegressor:
     def __init__(
         self,
         param_grid,
@@ -37,20 +36,24 @@ class CustomCVRegressor():
         sample_weight: Optional[ArrayLike] = None,
         offset: Optional[ArrayLike] = None,
     ):
-
-        self.best_estimator, self.best_glm_params, self.best_score, self.results = glm_cv(
-                X,
-                y,
-                {**self.regressor_args, "cv": self.cv},
-                self.param_grid,
-                offset=offset,
-                sample_weight=sample_weight,
-                one_SE_rule=self.one_SE_rule,
-                regressor_class=self.regressor_class,
-                warm_start_alpha=self.warm_start_alpha,
-                parallel = self.parallel
+        (
+            self.best_estimator,
+            self.best_glm_params,
+            self.best_score,
+            self.results,
+        ) = glm_cv(
+            X,
+            y,
+            {**self.regressor_args, "cv": self.cv},
+            self.param_grid,
+            offset=offset,
+            sample_weight=sample_weight,
+            one_SE_rule=self.one_SE_rule,
+            regressor_class=self.regressor_class,
+            warm_start_alpha=self.warm_start_alpha,
+            parallel=self.parallel,
         )
-    
+
         self.set_fitted_params(self.best_glm_params)
 
     def set_fitted_params(self, params_dict):

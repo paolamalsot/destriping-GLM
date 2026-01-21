@@ -1,8 +1,9 @@
-#override of submitit SlurmExecutor to add account and exclude parameters
+# override of submitit SlurmExecutor to add account and exclude parameters
 
 
 from submitit.auto.auto import AutoExecutor
 import typing as tp
+
 
 class MySlurmExecutor(AutoExecutor):
     def __init__(self, folder):
@@ -19,7 +20,7 @@ class MySlurmExecutor(AutoExecutor):
 
 
 ## EXAMPLE USAGE
-#executor = MySlurmExecutor(output_dir)
+# executor = MySlurmExecutor(output_dir)
 # executor.update_parameters(
 #     time=10,  # min
 #     mem=4000, # MB

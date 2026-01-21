@@ -27,6 +27,7 @@ from joblib import Parallel, delayed
 logger = logging.getLogger("GLUM CV")
 logger = logging.getLogger("GLUM CV")
 
+
 def _is_alpha_param_name(name: str) -> bool:
     """
     Return True if `name` is an 'alpha-like' parameter name.
@@ -41,13 +42,14 @@ def _is_alpha_param_name(name: str) -> bool:
     """
     return name.split("__")[-1] == "alpha"
 
+
 def _start_params_key(params):
     list_start_params_key = [
         key for key in params.keys() if key.split("__")[-1] == "start_params"
     ]
     if len(list_start_params_key) == 0:
         raise ValueError("No start params key")
-    elif len(list_start_params_key)>1:
+    elif len(list_start_params_key) > 1:
         raise ValueError(f"Ambiguous start_params keys: {list_start_params_key}")
     else:
         return list_start_params_key[0]
@@ -170,6 +172,7 @@ def _order_param_grid_for_alpha_path(param_grid_sk):
         key=lambda p: (_alpha_group_key(p), -_get_alpha_value(p)),
     )
 
+
 def get_alpha_path(param_grid_sk, best_params, final_alpha_val):
     # we suppose param_grid_sk is already ordered
     # best_params contain the best_params not the whole glm_params
@@ -239,6 +242,7 @@ def store_coef(glm, params, i_split, warm_starts):
     warm_starts[ws_key] = start_params_next
     logger.debug(f"Storing param (hash = {hash(start_params_next)} for group {ws_key})")
 
+
 def alpha_in_param_grid(param_grid):
     alpha_keys_in_grid = [k for k in param_grid.keys() if _is_alpha_param_name(k)]
     if not alpha_keys_in_grid:
@@ -252,14 +256,12 @@ def alpha_in_param_grid(param_grid):
     else:
         return True
 
-def get_warm_start_regressor(regressor_class, base_kwargs, best_params, param_grid_sk):
 
+def get_warm_start_regressor(regressor_class, base_kwargs, best_params, param_grid_sk):
     alpha_param_key = get_alpha_param_name(list(best_params.keys()))
     final_alpha_val = best_params[alpha_param_key]
 
-    alpha_path = get_alpha_path(
-        param_grid_sk, best_params, final_alpha_val
-    )
+    alpha_path = get_alpha_path(param_grid_sk, best_params, final_alpha_val)
 
     start_params_key = _start_params_key(base_kwargs)
 
@@ -278,6 +280,7 @@ def get_warm_start_regressor(regressor_class, base_kwargs, best_params, param_gr
 
 
 ## MAIN LOGIC
+
 
 def _run_one_split_df(
     *,
@@ -370,22 +373,22 @@ def glm_cv(
     parallel: bool = True,
     n_jobs: int = -1,
 ):
-    """ Manual CV for glum.GeneralizedLinearRegressor with deviance scoring. 
+    """Manual CV for glum.GeneralizedLinearRegressor with deviance scoring.
     Parameters
-        X : dataframe-like, shape (n_samples, n_features) 
-        y : array-like, shape (n_samples,) 
-        arguments : dict Base keyword arguments for GeneralizedLinearRegressor. Must contain a key "cv" with either: - an sklearn splitter (KFold, etc.) OR - an iterable of (train_idx, test_idx) tuples param_grid : dict Hyper-parameter grid, sklearn-style, e.g. {"alpha": [0.01, 0.1], "l1_ratio": [0, 0.5]} 
-        offset : array-like, shape (n_samples,), optional 
-        sample_weight : array-like, shape (n_samples,), optional 
+        X : dataframe-like, shape (n_samples, n_features)
+        y : array-like, shape (n_samples,)
+        arguments : dict Base keyword arguments for GeneralizedLinearRegressor. Must contain a key "cv" with either: - an sklearn splitter (KFold, etc.) OR - an iterable of (train_idx, test_idx) tuples param_grid : dict Hyper-parameter grid, sklearn-style, e.g. {"alpha": [0.01, 0.1], "l1_ratio": [0, 0.5]}
+        offset : array-like, shape (n_samples,), optional
+        sample_weight : array-like, shape (n_samples,), optional
         one_SE_rule: whether to choose the best hp with one_SE_rule
         regressor_class: class of regressor
-        warm_start_alpha: boolean flag for performing warm starts from higher alpha values 
-        parallel: boolean flag for performing parallel fits among splits. 
-    Returns ------- 
-        best_estimator : object of type regressor_class 
-        best_params : dict 
-        best_score : float Mean deviance over folds for best_params (lower is better). 
-        cv_results : list of dict One dict per parameter setting with mean/fold deviances, etc. 
+        warm_start_alpha: boolean flag for performing warm starts from higher alpha values
+        parallel: boolean flag for performing parallel fits among splits.
+    Returns -------
+        best_estimator : object of type regressor_class
+        best_params : dict
+        best_score : float Mean deviance over folds for best_params (lower is better).
+        cv_results : list of dict One dict per parameter setting with mean/fold deviances, etc.
 
     Parallelization strategy:
     - parallel=True  => parallel over splits (joblib), sequential over params per split
@@ -396,7 +399,9 @@ def glm_cv(
     """
 
     if "cv" not in arguments:
-        raise ValueError("arguments must contain a 'cv' key with the cross-validation splits")
+        raise ValueError(
+            "arguments must contain a 'cv' key with the cross-validation splits"
+        )
 
     cv = arguments["cv"]
     base_kwargs = {k: v for k, v in arguments.items() if k != "cv"}
@@ -455,8 +460,10 @@ def glm_cv(
         ]
 
     df_long = pd.concat(split_dfs, ignore_index=True)
-    
-    df_params = pd.DataFrame({"param_i": np.arange(len(param_grid_sk)), "params": param_grid_sk})
+
+    df_params = pd.DataFrame(
+        {"param_i": np.arange(len(param_grid_sk)), "params": param_grid_sk}
+    )
     df_long = df_long.merge(df_params, on="param_i", how="left")
 
     # --- Groupby gymnastics to build df_results ---
@@ -479,13 +486,19 @@ def glm_cv(
                 "params": g["params"].iloc[0],
                 "mean_deviance": mean_unit_dev,
                 "se_deviance": se_dev,
-                "fold_deviances": list(g.sort_values("split")["dev"].astype(float).to_list()),
+                "fold_deviances": list(
+                    g.sort_values("split")["dev"].astype(float).to_list()
+                ),
                 "coef_sparsity": float(g["coef_sparsity"].mean()),
                 "coef_norm": float(g["coef_norm"].mean()),
             }
         )
 
-    df_results = df_long.groupby("param_i", sort=True).apply(_agg_one_param).reset_index(drop=True)
+    df_results = (
+        df_long.groupby("param_i", sort=True)
+        .apply(_agg_one_param)
+        .reset_index(drop=True)
+    )
 
     logger.debug("Finished CV")
     log_df(df_results, logger.debug)

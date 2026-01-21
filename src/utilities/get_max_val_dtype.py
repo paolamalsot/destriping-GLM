@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def get_max_value(dtype):
     if np.issubdtype(dtype, np.integer):
         return np.iinfo(dtype).max

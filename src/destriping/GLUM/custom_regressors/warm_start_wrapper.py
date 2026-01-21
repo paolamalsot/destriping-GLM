@@ -7,8 +7,10 @@ from src.destriping.GLUM.custom_regressors.helpers import (
     wrap_dict_with_prefix,
 )
 import logging
+
 logger = logging.getLogger("WarmStartWrapper")
 from src.destriping.GLUM.glum_nb_helpers import hash
+
 
 class WarmStartWrapper:
     """
@@ -18,7 +20,7 @@ class WarmStartWrapper:
     ----------
 
     regressor_class : object
-    
+
     params : dict
         All hyperparameters to be passed at init to regressor_class
         (can contain the initial start_coef, and a dummy alpha)
@@ -55,7 +57,9 @@ class WarmStartWrapper:
         # Will hold the final fitted estimator after .fit()
         self.estimator_ = None
 
-        logger.debug(f"Initializing WarmStartWrapper for:\n class {self.regressor_class}\n {params=}\n {alpha_path=}")
+        logger.debug(
+            f"Initializing WarmStartWrapper for:\n class {self.regressor_class}\n {params=}\n {alpha_path=}"
+        )
 
     def _make_estimator_for_alpha(self, alpha, start_params):
         """
@@ -64,7 +68,7 @@ class WarmStartWrapper:
         """
 
         # this will use the start value in self.params if start_params is None
-        params = {**self.params, self.alpha_param_key: alpha}    
+        params = {**self.params, self.alpha_param_key: alpha}
         if start_params is not None:
             params[self.start_params_key] = start_params
             logger.debug(
@@ -91,7 +95,9 @@ class WarmStartWrapper:
             est = self._make_estimator_for_alpha(alpha, warm_start)
             est.fit(X, y, sample_weight=sample_weight, offset=offset)
 
-            warm_start = extract_intercept_coef(est)# Prepare warm start for next alpha
+            warm_start = extract_intercept_coef(
+                est
+            )  # Prepare warm start for next alpha
             logger.debug(f"Storing param (hash = {hash(warm_start)} for alpha {alpha})")
 
         self.estimator_ = est

@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 
 import matplotlib.axes
 import matplotlib.image
+
 if TYPE_CHECKING:
     from src.spatialAdata.spatialAdata import spatialAdata
 import anndata
@@ -14,7 +15,8 @@ import src.utilities.adata_utilities as adata_utilities
 import os
 import numpy as np
 from src.utilities.preserve_warnings import preserve_warnings
-with preserve_warnings(): #-> otherwise warning formats are changed (in stardist/__init__.py)
+
+with preserve_warnings():  # -> otherwise warning formats are changed (in stardist/__init__.py)
     import bin2cell as b2c
 from bin2cell import mpp_to_scalef
 from src.utilities.scanpy_spatial_squares import spatial
@@ -28,7 +30,11 @@ import src.utilities.sdata_utilities as sdata_utilities
 from src.utilities.sdata_utilities import history_decorator, is_rgb, imshow
 from src.utilities.df_unique_keys import coordinates_df, img_df
 import matplotlib.pyplot as plt
-from src.utilities.quantile_matching import quantile_match_sparse, quantile_match_poisson, get_qm_fun
+from src.utilities.quantile_matching import (
+    quantile_match_sparse,
+    quantile_match_poisson,
+    get_qm_fun,
+)
 from src.utilities.custom_imshow import custom_imshow
 from src.utilities.adata_utilities import img_2D_to_vals
 from numpy.typing import NDArray
@@ -39,17 +45,18 @@ import json
 import numpy as np
 import scipy.sparse as sp
 
+
 def match_sparse_type(input, reference):
     """
     Convert the input matrix to match the type of the reference matrix.
-    
+
     If the reference is a SciPy sparse matrix, the input will be converted to a match the sparse type of the matrix.
     If the reference is a NumPy array, the input will be converted to a dense NumPy array.
-    
+
     Parameters:
     - input: The matrix to convert (can be NumPy or SciPy sparse).
     - reference: The reference matrix (either NumPy or SciPy sparse).
-    
+
     Returns:
     - Converted input matrix to match the type of reference.
     """
@@ -64,17 +71,19 @@ def match_sparse_type(input, reference):
         if sp.issparse(input):
             return input.toarray()
         else:
-            return input # Ensure it's a NumPy array
-    
+            return input  # Ensure it's a NumPy array
+
     else:
-        raise ValueError("Reference matrix must be either a NumPy array or a SciPy sparse matrix.")
+        raise ValueError(
+            "Reference matrix must be either a NumPy array or a SciPy sparse matrix."
+        )
+
 
 def downscaled_he_img_key(mpp):
-        return str(mpp) + "_mpp"
+    return str(mpp) + "_mpp"
 
 
 class spatialAdata:
-
     def __init__(
         self,
         adata: AnnData,
@@ -83,7 +92,6 @@ class spatialAdata:
         img_df: img_df,
         history=None,
     ):
-
         # attributes
         self.adata = adata
         self.library_id = library_id
@@ -131,22 +139,23 @@ class spatialAdata:
     def __getitem__(self, index):
         """Returns a sliced view of the object."""
 
-        adata = adata_utilities.get_item(self.adata, index)        
+        adata = adata_utilities.get_item(self.adata, index)
         # Construct the new sliced object as before
         sdata = spatialAdata(
             adata, self.library_id, self.coordinate_df, self.img_df, self.history
         )
 
-        return sdata     
+        return sdata
 
     @history_decorator
     def zoom(self, limits, coordinate_id="array", copy=True):
-
         # returns a spatialAdata object with a view of adata
         # limits is an array wrt coordinate_id, with [min(coordinates[:,0]), max(coordinates[:,0]), min(coordinates[:,1]), max(coordinates[:,1])]
 
         if copy:
-            return self.copy().zoom(limits, coordinate_id, copy=False).copy() #not super elegant solution...
+            return (
+                self.copy().zoom(limits, coordinate_id, copy=False).copy()
+            )  # not super elegant solution...
 
         coordinates = self.get_unscaled_coordinates(coordinate_id=coordinate_id)
         limits_selector = selector_within_limits(coordinates, limits)
@@ -158,7 +167,6 @@ class spatialAdata:
 
     @history_decorator
     def scale_he_image(self, mpp=1, crop=True, buffer=150, img_path=None):
-
         # scales the fullres he image to the desired mpp.
         # If crop, we reduce the image to the area that contains the count data. When specified buffer pixels from the original image around the crop area are conserved.
         # img_path: where to save the resulting image !
@@ -167,7 +175,9 @@ class spatialAdata:
 
         if crop:
             img, new_coordinates = sdata_utilities.crop(
-                img, self.get_coordinates("fullres", round = False, truncate= False), buffer
+                img,
+                self.get_coordinates("fullres", round=False, truncate=False),
+                buffer,
             )
             coordinate_id = "fullres_cropped"
             self.set_unscaled_coordinates(coordinate_id, new_coordinates)
@@ -247,7 +257,9 @@ class spatialAdata:
 
         self.insert_labels(
             labels_npz_path=labels_npz_path,  # file with pixel coordinates and labels of cells...
-            img_key=self.downscaled_he_img_key(mpp),  # was it based on H&E (spatial) or GEX
+            img_key=self.downscaled_he_img_key(
+                mpp
+            ),  # was it based on H&E (spatial) or GEX
         )
 
         self.save(os.path.join(output_dir, "sdata"))
@@ -265,25 +277,35 @@ class spatialAdata:
         labels_key = "labels_gex"
         self.n_counts
         if "n_counts_adjusted" in self.obs.columns:
-            assert np.all(np.isclose(self.obs["n_counts"], self.obs["n_counts_adjusted"]))
-        self.grid_image_from_label_custom_mpp("n_counts", new_image_label = img_key, log1p = False, mpp = mpp, sigma = 5, save_path=img_path, pad_to = (3350, 3350))
+            assert np.all(
+                np.isclose(self.obs["n_counts"], self.obs["n_counts_adjusted"])
+            )
+        self.grid_image_from_label_custom_mpp(
+            "n_counts",
+            new_image_label=img_key,
+            log1p=False,
+            mpp=mpp,
+            sigma=5,
+            save_path=img_path,
+            pad_to=(3350, 3350),
+        )
 
         labels_path = os.path.join(output_dir, "gex.npz")
-        b2c.stardist(image_path=img_path, 
-             labels_npz_path=labels_path, 
-             stardist_model="2D_versatile_fluo", 
-             prob_thresh=0.05, 
-             nms_thresh=0.5
-            )
+        b2c.stardist(
+            image_path=img_path,
+            labels_npz_path=labels_path,
+            stardist_model="2D_versatile_fluo",
+            prob_thresh=0.05,
+            nms_thresh=0.5,
+        )
 
         self.insert_labels(
             labels_npz_path=labels_path,  # file with pixel coordinates and labels of cells...
             img_key=img_key,  # was it based on H&E (spatial) or GEX
-            labels_key=labels_key
+            labels_key=labels_key,
         )
 
         self.save(os.path.join(output_dir, "sdata"))
-
 
     def insert_labels(self, labels_npz_path, img_key, labels_key="labels_he"):
         # inspired by bin2cell
@@ -316,7 +338,7 @@ class spatialAdata:
         ).flatten()
 
         # convert the int to categorical dtype with strings
-        NA_positions = (self.adata.obs[labels_key] == 0)
+        NA_positions = self.adata.obs[labels_key] == 0
         self.adata.obs[labels_key] = self.adata.obs[labels_key].astype(str)
         self.adata.obs.loc[NA_positions, labels_key] = pd.NA
         self.adata.obs[labels_key] = self.adata.obs[labels_key].astype("category")
@@ -326,8 +348,7 @@ class spatialAdata:
     def destripe_bin2cell(self):
         original_counts = self.n_counts
         b2c.destripe(
-            self.adata,
-            adjust_counts=False
+            self.adata, adjust_counts=False
         )  # causes the warning FutureWarning: Series.__getitem__ treating keys as positions is deprecated. In a future version, integer keys will always be treated as labels (consistent with DataFrame behavior). To access a value by position, use `ser.iloc[pos]`
 
         self.n_counts
@@ -349,9 +370,15 @@ class spatialAdata:
         self.n_counts
 
         return self
-    
+
     @history_decorator
-    def bin2cell(self, labels_key = "labels_he", labels_source_key = "labels_he_source", diameter_scale_factor=None, aggr_fun = aggr_sum):
+    def bin2cell(
+        self,
+        labels_key="labels_he",
+        labels_source_key="labels_he_source",
+        diameter_scale_factor=None,
+        aggr_fun=aggr_sum,
+    ):
         # Return a new spatial data object which aggregates all bins with same labels
         # Gene expression will be added up, coordinates averaged.
         # ``"spot_diameter_fullres"`` in the scale factors multiplied by
@@ -359,12 +386,16 @@ class spatialAdata:
         # including ``.obs["bin_count"]`` reporting how many bins went into creating the cell.
 
         def aggregate_fun(group_df):
-            dict_ = {#labels_key: group_df[labels_key], #will that work, since labels_key is the groupby ??
-                     "bin_count": len(group_df),
-                     "original_indices": group_df["num_index"].tolist(), #will that work, since we are doing a groupby ??
-                     }
-            if not(labels_source_key is None):
-                labels_source_unique = np.unique(group_df.loc[:,labels_source_key]).tolist()
+            dict_ = {  # labels_key: group_df[labels_key], #will that work, since labels_key is the groupby ??
+                "bin_count": len(group_df),
+                "original_indices": group_df[
+                    "num_index"
+                ].tolist(),  # will that work, since we are doing a groupby ??
+            }
+            if not (labels_source_key is None):
+                labels_source_unique = np.unique(
+                    group_df.loc[:, labels_source_key]
+                ).tolist()
                 assert len(labels_source_unique) == 1
                 dict_[labels_source_key] = labels_source_unique[0]
 
@@ -372,14 +403,22 @@ class spatialAdata:
             return out_series
 
         self.adata.obs["num_index"] = np.arange(len(self.adata.obs))
-        b2c_obs = self.adata.obs.dropna(axis = 0, subset = labels_key).groupby(labels_key, observed = True).apply(aggregate_fun)
+        b2c_obs = (
+            self.adata.obs.dropna(axis=0, subset=labels_key)
+            .groupby(labels_key, observed=True)
+            .apply(aggregate_fun)
+        )
         del self.adata.obs["num_index"]
-        b2c_obs.index = b2c_obs.index.astype(str) #avoids when loading aligned_df.py (67): Transforming to str index.
+        b2c_obs.index = b2c_obs.index.astype(
+            str
+        )  # avoids when loading aligned_df.py (67): Transforming to str index.
         # b2c_obs[labels_key] = b2c_obs.index.astype(str)
         # b2c_obs.reset_index(inplace = True)
         # b2c_obs[labels_key] = b2c_obs.index.astype("category")
         # create the new cdata object
-        b2cdata = self[:len(b2c_obs)].copy() #random selection of indices, just to get the correct size.
+        b2cdata = self[
+            : len(b2c_obs)
+        ].copy()  # random selection of indices, just to get the correct size.
         b2cdata.adata.obs = b2c_obs
 
         # adding the gene expression data
@@ -391,12 +430,16 @@ class spatialAdata:
         if diameter_scale_factor is None:
             diameter_scale_factor = np.sqrt(np.mean(b2c_obs.bin_count))
         try:
-            b2cdata.adata.uns['spatial'][b2cdata.library_id]['scalefactors']['spot_diameter_fullres'] *= diameter_scale_factor
+            b2cdata.adata.uns["spatial"][b2cdata.library_id]["scalefactors"][
+                "spot_diameter_fullres"
+            ] *= diameter_scale_factor
         except:
             logging.info("No spot diameter")
 
         # mean of the spatial coordinates
-        for coord in np.unique(self.coordinate_df.df["coordinate_id"]): #TODO: we could implement .loc in coordinate_df
+        for coord in np.unique(
+            self.coordinate_df.df["coordinate_id"]
+        ):  # TODO: we could implement .loc in coordinate_df
             coordinates = self.get_unscaled_coordinates(coord)
             new_coordinates = aggr_mean(coordinates, indices_aggr)
             b2cdata.set_unscaled_coordinates(coord, new_coordinates)
@@ -422,8 +465,8 @@ class spatialAdata:
     @history_decorator
     def get_destripe_factors(self, row_factors: pd.Series, col_factors: pd.Series):
         array_coords = self.get_unscaled_coordinates("array")
-        array_row = array_coords[:,0]
-        array_col = array_coords[:,1]
+        array_row = array_coords[:, 0]
+        array_col = array_coords[:, 1]
 
         # row_factors_filled = pd.Series(index=np.unique(array_row), data = np.ones(len(np.unique(array_row))))
         # row_factors_index_intersect = row_factors_filled.index.intersection(row_factors.index)
@@ -438,32 +481,49 @@ class spatialAdata:
         row_factors_ = row_factors_filled.loc[array_row].values
         col_factors_ = col_factors_filled.loc[array_col].values
 
-        return (row_factors_ * col_factors_)
+        return row_factors_ * col_factors_
 
     @history_decorator
     def destripe_dividing_factors(self, row_factors: pd.Series, col_factors: pd.Series):
         self.n_counts
-        self.obs["destripe_factor"] = self.get_destripe_factors(row_factors, col_factors)
+        self.obs["destripe_factor"] = self.get_destripe_factors(
+            row_factors, col_factors
+        )
         self.obs["n_counts_adjusted"] = self.obs["n_counts"]
-        self.obs["n_counts_adjusted"] = self.obs["n_counts_adjusted"]/self.obs["destripe_factor"]
+        self.obs["n_counts_adjusted"] = (
+            self.obs["n_counts_adjusted"] / self.obs["destripe_factor"]
+        )
         # correcting the n_counts_ajusted which are inf and nans caused by n_counts = 0 and destripe_factor = 0...
         inf_selector = np.isinf(self.obs["n_counts_adjusted"])
-        self.obs.loc[inf_selector, "n_counts_adjusted"] = self.obs.loc[inf_selector, "n_counts"]
-        zero_zero_selector = (self.obs["n_counts"].values == 0) & (self.obs["destripe_factor"].values == 0)
+        self.obs.loc[inf_selector, "n_counts_adjusted"] = self.obs.loc[
+            inf_selector, "n_counts"
+        ]
+        zero_zero_selector = (self.obs["n_counts"].values == 0) & (
+            self.obs["destripe_factor"].values == 0
+        )
         self.obs.loc[zero_zero_selector, "n_counts_adjusted"] = 0
         assert not (self.obs.loc[zero_zero_selector, "n_counts_adjusted"].isna().any())
-        destripe_counts(self.adata, counts_key="n_counts", adjusted_counts_key="n_counts_adjusted")
+        destripe_counts(
+            self.adata, counts_key="n_counts", adjusted_counts_key="n_counts_adjusted"
+        )
         self.n_counts
         return self
 
     @history_decorator
-    def destripe_quantile_matching(self, row_factors: pd.Series, col_factors: pd.Series, gene_expression_per_bin : AnnData, method = quantile_match_poisson):
-
+    def destripe_quantile_matching(
+        self,
+        row_factors: pd.Series,
+        col_factors: pd.Series,
+        gene_expression_per_bin: AnnData,
+        method=quantile_match_poisson,
+    ):
         # gene_expression_per_bin is an AnnData object with indices corresponding self.index
         self.n_counts
 
         # select portion of obs to destripe
-        self.obs["destripe_factor"] = self.get_destripe_factors(row_factors, col_factors)
+        self.obs["destripe_factor"] = self.get_destripe_factors(
+            row_factors, col_factors
+        )
 
         # if gene_expression_per_cell is None:
         #     gene_expression_per_cell = self.expected_cell_ge_conc_from_stripe_factors(row_factors, col_factors)
@@ -482,13 +542,20 @@ class spatialAdata:
         logging.debug("4")
         logging.debug(expression)
         logging.debug(expected_concentration)
-        corrected_expression = quantile_match_sparse(expression, expected_concentration, destripe_factors.reshape(-1,1), method = method)
+        corrected_expression = quantile_match_sparse(
+            expression,
+            expected_concentration,
+            destripe_factors.reshape(-1, 1),
+            method=method,
+        )
         logging.debug("5")
         # assign corrected expression and correct total counts
         # int_indices_correction = self.obs.index.get_indexer(bin_to_correct_indices)
         logging.debug("6")
-        if self.X.dtype == np.int64: # works both for numpy and scipy sparse !
-            self.adata.X = self.adata.X.astype(np.float64) # This is important, otherwise the next line will cast to an int...
+        if self.X.dtype == np.int64:  # works both for numpy and scipy sparse !
+            self.adata.X = self.adata.X.astype(
+                np.float64
+            )  # This is important, otherwise the next line will cast to an int...
         logging.debug("7")
         # assign_view(self.X, match_sparse_type(corrected_expression, self.X)) #TODO: check this works when X is CSR/COO
         self.adata.X = match_sparse_type(corrected_expression, self.X)
@@ -498,26 +565,47 @@ class spatialAdata:
         return self
 
     @history_decorator
-    def destripe_dividing_factors_qm_tot_counts(self, row_factors: pd.Series, col_factors: pd.Series, gene_expression_per_bin : AnnData, dist = "poisson", dist_params = None):
+    def destripe_dividing_factors_qm_tot_counts(
+        self,
+        row_factors: pd.Series,
+        col_factors: pd.Series,
+        gene_expression_per_bin: AnnData,
+        dist="poisson",
+        dist_params=None,
+    ):
         self.n_counts
         method = get_qm_fun(dist, dist_params=dist_params)
 
-        self.obs["destripe_factor"] = self.get_destripe_factors(row_factors, col_factors)
+        self.obs["destripe_factor"] = self.get_destripe_factors(
+            row_factors, col_factors
+        )
 
         # if gene_expression_per_cell is None:
         #     gene_expression_per_cell = self.expected_cell_ge_conc_from_stripe_factors(row_factors, col_factors, cell_id = cell_id_label)
 
         gene_expression_per_bin.obs["n_counts"] = gene_expression_per_bin.X.sum(-1)
-        self.obs["n_counts_adjusted"] = method(self.obs.n_counts.values,
-                                                       gene_expression_per_bin.obs.n_counts.loc[self.adata.obs_names].values,#normally no need to put .astype str! 
-                                                       self.obs["destripe_factor"].values)
-        destripe_counts(self.adata, counts_key="n_counts", adjusted_counts_key="n_counts_adjusted")
+        self.obs["n_counts_adjusted"] = method(
+            self.obs.n_counts.values,
+            gene_expression_per_bin.obs.n_counts.loc[
+                self.adata.obs_names
+            ].values,  # normally no need to put .astype str!
+            self.obs["destripe_factor"].values,
+        )
+        destripe_counts(
+            self.adata, counts_key="n_counts", adjusted_counts_key="n_counts_adjusted"
+        )
         self.n_counts
         return self
 
     @history_decorator
-    def destripe_combi_nucl_cyto(self, nucl_indices : pd.Index, method_nucl = destripe_dividing_factors_qm_tot_counts, method_cyto = destripe_dividing_factors, args_nucl = None, args_cyto = None):
-
+    def destripe_combi_nucl_cyto(
+        self,
+        nucl_indices: pd.Index,
+        method_nucl=destripe_dividing_factors_qm_tot_counts,
+        method_cyto=destripe_dividing_factors,
+        args_nucl=None,
+        args_cyto=None,
+    ):
         if args_cyto is None:
             args_cyto = {}
         if args_nucl is None:
@@ -532,10 +620,10 @@ class spatialAdata:
         # args_nucl = match_method_signature(method_nucl, args_nucl)
         method_cyto(cyto, **args_cyto)
         method_nucl(nucl, **args_nucl)
-        new_adata = anndata.concat([cyto.adata, nucl.adata], uns_merge = "same")
+        new_adata = anndata.concat([cyto.adata, nucl.adata], uns_merge="same")
         new_adata.uns = deepcopy(self.adata.uns)
-        new_adata = new_adata[self.adata.obs_names] #aligning
-        new_adata = new_adata.copy() #avoids having a view...
+        new_adata = new_adata[self.adata.obs_names]  # aligning
+        new_adata = new_adata.copy()  # avoids having a view...
         self.adata = new_adata
         return self
 
@@ -550,17 +638,17 @@ class spatialAdata:
         return self
 
     @history_decorator
-    def filter_cells(self, min_counts = None, min_genes = None):
-        sc.pp.filter_cells(self.adata, min_counts=min_counts, min_genes = min_genes)
+    def filter_cells(self, min_counts=None, min_genes=None):
+        sc.pp.filter_cells(self.adata, min_counts=min_counts, min_genes=min_genes)
         return self
 
     @history_decorator
-    def highly_variable_genes(self, n_top_genes = None, flavor = None):
-        sc.pp.highly_variable_genes(self.adata,n_top_genes=n_top_genes,flavor=flavor)
+    def highly_variable_genes(self, n_top_genes=None, flavor=None):
+        sc.pp.highly_variable_genes(self.adata, n_top_genes=n_top_genes, flavor=flavor)
 
     @history_decorator
     def normalize_total(self, target_sum):
-        sc.pp.normalize_total(self.adata,target_sum=target_sum)
+        sc.pp.normalize_total(self.adata, target_sum=target_sum)
 
     @history_decorator
     def log1p(self):
@@ -568,11 +656,10 @@ class spatialAdata:
 
     @history_decorator
     def calculate_qc_metrics(self):
-        sc.pp.calculate_qc_metrics(self.adata,inplace=True)
+        sc.pp.calculate_qc_metrics(self.adata, inplace=True)
 
     @history_decorator
     def preprocess(self, destripe, log1p, highly_variable, scale, copy=True):
-
         if copy:
             spatial_data = self.copy()
             return spatial_data.preprocess(
@@ -607,9 +694,9 @@ class spatialAdata:
         self.set_unscaled_coordinates(basis, new)
         crop_coord = [
             np.min(new[:, 0]),
-            np.max(new[:, 0])+1,
+            np.max(new[:, 0]) + 1,
             np.min(new[:, 1]),
-            np.max(new[:, 1])+1,
+            np.max(new[:, 1]) + 1,
         ]
         res = spatial(**args, crop_coord=crop_coord)
 
@@ -624,14 +711,13 @@ class spatialAdata:
         res = self.plot_sc_spatial(args)
         return res
 
-    def plot_labels(self, img_key, label = "labels_he"):
+    def plot_labels(self, img_key, label="labels_he"):
         return self.plot_obs([None, label], img_key)
 
     def plot_shell_numbers(self, img_key):
         return self.plot_obs([None, "shell_number"], img_key)
 
     def plot_closest_nucl(self, img_key, filter_nuclei=True):
-
         # important to run after show_labels_adata #TODO: I have the impression that one needs to show it somehow ?? Like that if one does return_fig = True, with show = False, it won't work...
         # filter_nuclei: remove bins whose closest nucleus falls outside the anndata
 
@@ -650,7 +736,6 @@ class spatialAdata:
         return sdata_pl.plot_sc_spatial(args)
 
     def plot_img_region(self, unscaled_limits, coordinate_id, img_key, ax=None):
-
         img = self.get_img(img_key)
         limits_pixel_coords = get_limits_pixel_coordinates(
             img_key, coordinate_id, unscaled_limits, self.coordinate_df, self
@@ -671,7 +756,6 @@ class spatialAdata:
         return ax
 
     def plot_img_region_inset(self, unscaled_limits, coordinate_id, img_key, ax=None):
-
         if ax is None:
             fig, ax = plt.subplots()
 
@@ -695,7 +779,7 @@ class spatialAdata:
 
         axins = imshow(img, axins)
 
-        ax.indicate_inset_zoom(axins, edgecolor="black", linestyle = "--")
+        ax.indicate_inset_zoom(axins, edgecolor="black", linestyle="--")
         axins.invert_yaxis()
 
         plt.tight_layout()
@@ -716,20 +800,30 @@ class spatialAdata:
         )
         return axes
 
-    def plot_n_counts(self, axis = None, colorbar_loc='right', vmax=None, vmin=None, label_counts = "n_counts", **kwargs):
+    def plot_n_counts(
+        self,
+        axis=None,
+        colorbar_loc="right",
+        vmax=None,
+        vmin=None,
+        label_counts="n_counts",
+        **kwargs,
+    ):
         # NB: colorbar loc None => no colorbar is added.
         if axis is None:
             fig, axis = plt.subplots()
         axis.patch.set_facecolor("black")
-        kwargs_updated = {"img_key": None,
-                  "ax": axis,
-                  "color_map": "gray",
-                  "colorbar_loc": colorbar_loc,
-                  "vmax": vmax,
-                  "vmin": vmin,
-                  "facecolor": "m"}
+        kwargs_updated = {
+            "img_key": None,
+            "ax": axis,
+            "color_map": "gray",
+            "colorbar_loc": colorbar_loc,
+            "vmax": vmax,
+            "vmin": vmin,
+            "facecolor": "m",
+        }
         kwargs_updated = {**kwargs_updated, **kwargs}
-        self.plot_obs(label_counts, **kwargs_updated) #add a black and white !
+        self.plot_obs(label_counts, **kwargs_updated)  # add a black and white !
         return axis
 
     @history_decorator
@@ -737,7 +831,15 @@ class spatialAdata:
         vals = pull_values_adata(obs_label, self.adata)
         return img_2D_from_vals(self.array_coords, vals)
 
-    def imshow_matrix_from_label(self, obs_name, axis: matplotlib.axes.Axes | None = None, cmap = "gray", na_color = "red", colorbar_on = True, **kwargs) -> matplotlib.image.AxesImage:
+    def imshow_matrix_from_label(
+        self,
+        obs_name,
+        axis: matplotlib.axes.Axes | None = None,
+        cmap="gray",
+        na_color="red",
+        colorbar_on=True,
+        **kwargs,
+    ) -> matplotlib.image.AxesImage:
         matrix = self.matrix_from_label(obs_name)
         return custom_imshow(matrix, axis, cmap, na_color, colorbar_on, **kwargs)
 
@@ -780,10 +882,10 @@ class spatialAdata:
             coordinate_id="array", scalefactor=1.0, img_key=new_image_label
         )
 
-    def plot_n_counts_labels_superposition(self,axes = None, cell_id_label = "labels_he"):
+    def plot_n_counts_labels_superposition(self, axes=None, cell_id_label="labels_he"):
         if axes is None:
-            fig, axes = plt.subplots(1,3, figsize = (15,5))
-        ax = self.plot_n_counts(axis = axes[0])
+            fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+        ax = self.plot_n_counts(axis=axes[0])
         ax = self[~pd.isna(self.obs[cell_id_label])].plot_obs(
             cell_id_label,
             alpha=0.4,
@@ -792,7 +894,7 @@ class spatialAdata:
             legend_loc=None,
             na_color=(0, 0, 0, 0),
         )
-        ax = self.plot_n_counts(axis = axes[1])
+        ax = self.plot_n_counts(axis=axes[1])
         ax = self[~pd.isna(self.obs[cell_id_label])].plot_obs(
             cell_id_label,
             alpha=0.4,
@@ -809,7 +911,14 @@ class spatialAdata:
     @history_decorator
     # on the long term, this could replace grid_image_from_label
     def grid_image_from_label_custom_mpp(
-        self, obs_label="n_counts", new_image_label=None, log1p=True, mpp = 0.5, sigma = 5, save_path=None, pad_to = None
+        self,
+        obs_label="n_counts",
+        new_image_label=None,
+        log1p=True,
+        mpp=0.5,
+        sigma=5,
+        save_path=None,
+        pad_to=None,
     ):
         """
         Modification of bin2cell.grid_image
@@ -835,7 +944,7 @@ class spatialAdata:
         max_0 = np.max(self.array_coords[:, 0])
         max_1 = np.max(self.array_coords[:, 1])
 
-        if not(pad_to is None):
+        if not (pad_to is None):
             shape = (max(max_0 + 1, pad_to[0]), max(max_1 + 1, pad_to[1]))
         else:
             shape = (max_0 + 1, max_1 + 1)
@@ -847,7 +956,7 @@ class spatialAdata:
         scalefactors_dict = self.adata.uns["spatial"][self.library_id]["scalefactors"]
         bin_size_um = scalefactors_dict["bin_size_um"]
 
-        scalefactor = bin_size_um/mpp
+        scalefactor = bin_size_um / mpp
 
         if mpp != 2:
             dim = np.round(np.array(img.shape) * scalefactor).astype(int)[::-1]
@@ -855,7 +964,9 @@ class spatialAdata:
         # run through the gaussian filter if need be
         if sigma is not None:
             img = skimage.filters.gaussian(img, sigma=sigma)
-            img = (255 * (img-np.min(img))/(np.max(img)-np.min(img))).astype(np.uint8)
+            img = (255 * (img - np.min(img)) / (np.max(img) - np.min(img))).astype(
+                np.uint8
+            )
 
         # save or return image
         if save_path is not None:
@@ -864,9 +975,7 @@ class spatialAdata:
         if new_image_label is None:
             new_image_label = obs_label + ("__log1p" if log1p else "")
 
-        img_scalefactor = 1.0 / (
-            (mpp / scalefactors_dict["microns_per_pixel"])
-        )
+        img_scalefactor = 1.0 / ((mpp / scalefactors_dict["microns_per_pixel"]))
 
         self.add_img(
             img,
@@ -943,9 +1052,16 @@ class spatialAdata:
     def get_lims_unscaled_coordinates(self, coordinate_id):
         # returns the limits of the unscaled coordinates
         coords = self.get_unscaled_coordinates(coordinate_id)
-        return np.array([np.min(coords[:, 0]), np.max(coords[:, 0]), np.min(coords[:, 1]), np.max(coords[:, 1])])
+        return np.array(
+            [
+                np.min(coords[:, 0]),
+                np.max(coords[:, 0]),
+                np.min(coords[:, 1]),
+                np.max(coords[:, 1]),
+            ]
+        )
 
-    def get_coordinates(self, img_key, coordinate_id=None, round = False, truncate = True):
+    def get_coordinates(self, img_key, coordinate_id=None, round=False, truncate=True):
         # find a coordinate_id and a scale factor for img_key
         # return scaled coordinates
         if round and truncate:
@@ -953,11 +1069,11 @@ class spatialAdata:
 
         coords = self.get_image_coordinate_dict(img_key, coordinate_id)
         coordinate_id = coords["coordinate_id"]
-        coords = (self.get_unscaled_coordinates(coordinate_id) * coords["scalefactor"])
+        coords = self.get_unscaled_coordinates(coordinate_id) * coords["scalefactor"]
         if round:
             coords = np.round(coords).astype(int)
         elif truncate:
-            coords = coords.astype(int) #this does truncation
+            coords = coords.astype(int)  # this does truncation
 
         return coords
 
@@ -966,8 +1082,8 @@ class spatialAdata:
 
     def add_array_coords_to_obs(self):
         coords = self.get_unscaled_coordinates("array")
-        rows = coords[:,0].flatten()
-        cols = coords[:,1].flatten()
+        rows = coords[:, 0].flatten()
+        cols = coords[:, 1].flatten()
         self.obs["array_row"] = rows
         self.obs["array_col"] = cols
 
@@ -993,7 +1109,9 @@ class spatialAdata:
         # when specified, img_path suggests to save the image !
 
         if img_path is not None:
-            cv2_utils.save_img(img, img_path, rgb) #this potentially breaks if the img is not in int uint8 type...
+            cv2_utils.save_img(
+                img, img_path, rgb
+            )  # this potentially breaks if the img is not in int uint8 type...
         if in_memory:
             self.adata.uns["spatial"][self.library_id]["images"][img_key] = img
             self.adata.uns["spatial"][self.library_id]["scalefactors"][
@@ -1033,7 +1151,7 @@ class spatialAdata:
     def get_img_scalefactor(self, img_key):
         return self.img_df.get_img_scalefactor(img_key)
 
-    def downscaled_he_img_key(self, mpp = None):
+    def downscaled_he_img_key(self, mpp=None):
         if mpp is None:
             img_keys = self.coordinate_df.df["img_key"].dropna().tolist()
             img_key_select = [key for key in img_keys if "mpp" in key]
@@ -1073,11 +1191,11 @@ class spatialAdata:
         ]
 
     @property
-    def obs(self) -> pd.DataFrame: 
+    def obs(self) -> pd.DataFrame:
         return self.adata.obs
 
     @property
-    def obsm(self): 
+    def obsm(self):
         return self.adata.obsm
 
     @property
@@ -1095,14 +1213,14 @@ class spatialAdata:
     @property
     def shape_array(self):
         array_coords = self.get_unscaled_coordinates("array")
-        max_row, max_col = np.max(array_coords, axis = 0)
-        min_row, min_col = np.min(array_coords, axis = 0)
+        max_row, max_col = np.max(array_coords, axis=0)
+        min_row, min_col = np.min(array_coords, axis=0)
         n_cols = max_col - min_col + 1
         n_rows = max_row - min_row + 1
         return n_rows, n_cols
 
-    def nucl_indices(self, cell_id_label = "cell_id"):
+    def nucl_indices(self, cell_id_label="cell_id"):
         return self.obs[cell_id_label].dropna().index
 
-    def nucl_mask(self, cell_id_label = "cell_id"):
+    def nucl_mask(self, cell_id_label="cell_id"):
         return np.logical_not(self.obs[cell_id_label].isna().to_numpy())

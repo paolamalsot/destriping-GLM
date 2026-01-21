@@ -10,6 +10,7 @@ from src.experiments_analysis.analysis_utils import (
     load_poisson_sol,
 )
 
+
 def make_stripe_difference_plots(df_runs: pd.DataFrame, output_dir: Path) -> None:
     """
     Generate Plotly stripe-factor difference plots for each dataset.
@@ -35,6 +36,3 @@ def make_stripe_difference_plots(df_runs: pd.DataFrame, output_dir: Path) -> Non
 
     output_dir.mkdir(parents=True, exist_ok=True)
     fig.write_html(output_dir / "stripe_factors_difference.html")
-
-
-

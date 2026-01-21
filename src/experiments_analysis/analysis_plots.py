@@ -6,7 +6,12 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 from pathlib import Path as P
-from src.experiments_analysis.summary_structure_preservation import cytoplasm_select_matrix, data_select_matrix, smoothed_lineplot_from_key, striping_intensity_all
+from src.experiments_analysis.summary_structure_preservation import (
+    cytoplasm_select_matrix,
+    data_select_matrix,
+    smoothed_lineplot_from_key,
+    striping_intensity_all,
+)
 from src.utilities.custom_imshow import custom_imshow
 from src.utilities.matplotlib_utils import pad_axes_in_points
 
@@ -77,12 +82,22 @@ def barplots_distance_to_gt(
     return axes
 
 
-def compare_destriped_data_plots(to_plot, global_structure_dir, region_slice, model_name_replacement_dict = None, axes = None, colorbar_same_scale = True, **imshow_kwargs):
+def compare_destriped_data_plots(
+    to_plot,
+    global_structure_dir,
+    region_slice,
+    model_name_replacement_dict=None,
+    axes=None,
+    colorbar_same_scale=True,
+    **imshow_kwargs,
+):
     matrices_output_folder = P(global_structure_dir) / "destriping_matrices"
     df_matrices = pd.read_csv(matrices_output_folder / "df_results_path_matrices.csv")
     all_values = []
 
-    model_name_replacement_dict_inv = {val: key for key, val in model_name_replacement_dict.items()}
+    model_name_replacement_dict_inv = {
+        val: key for key, val in model_name_replacement_dict.items()
+    }
 
     for name in to_plot:
         matrix_path = df_matrices.query(
@@ -91,7 +106,6 @@ def compare_destriped_data_plots(to_plot, global_structure_dir, region_slice, mo
         matrix = np.load(matrix_path)
         sub = matrix[region_slice]
         all_values.append(sub)
-
 
     stacked = np.concatenate([m[~np.isnan(m)] for m in all_values])
     vmin_global, vmax_global = stacked.min(), stacked.max()
@@ -102,7 +116,6 @@ def compare_destriped_data_plots(to_plot, global_structure_dir, region_slice, mo
     else:
         vmin = None
         vmax = None
-
 
     if axes is None:
         fig, axes = plt.subplots(len(to_plot), 1, figsize=(8, 3 * len(to_plot)))
@@ -124,15 +137,19 @@ def compare_destriped_data_plots(to_plot, global_structure_dir, region_slice, mo
 def get_matrix(name, global_structure_dir, model_name_replacement_dict):
     matrices_output_folder = P(global_structure_dir) / "destriping_matrices"
     df_matrices = pd.read_csv(matrices_output_folder / "df_results_path_matrices.csv")
-    model_name_replacement_dict_inv = {val: key for key, val in model_name_replacement_dict.items()}
+    model_name_replacement_dict_inv = {
+        val: key for key, val in model_name_replacement_dict.items()
+    }
     matrix_path = df_matrices.query(
-            f"name == '{model_name_replacement_dict_inv.get(name, name)}'"
-        )["path_destriped_n_counts_matrix"].item()
+        f"name == '{model_name_replacement_dict_inv.get(name, name)}'"
+    )["path_destriped_n_counts_matrix"].item()
     matrix = np.load(matrix_path)
     return matrix
 
 
-def striping_intensity_region_df(output_dir, region_slice, to_plot, model_name_replacement_dict):
+def striping_intensity_region_df(
+    output_dir, region_slice, to_plot, model_name_replacement_dict
+):
     output_path = P(output_dir) / "destriped_summary_df.pkl"
     destriped_summary_df = pd.read_pickle(output_path)
     path_dataset = pd.unique(destriped_summary_df["dataset_path"])[0]
@@ -141,9 +158,10 @@ def striping_intensity_region_df(output_dir, region_slice, to_plot, model_name_r
 
     rows = []
     for cyto_select in [True, False]:
-
         if cyto_select:
-            matrix_select = cytoplasm_select_matrix(path_dataset, nucl_label)[region_slice]
+            matrix_select = cytoplasm_select_matrix(path_dataset, nucl_label)[
+                region_slice
+            ]
         else:
             matrix_select = data_select_matrix(path_dataset)[region_slice]
 
@@ -177,12 +195,13 @@ def striping_intensity_quantification_region_barplot(
     color_dict,
     model_name_replacement_dict,
     cyto_select,
-    axes = None):
+    axes=None,
+):
     df = striping_intensity_region_df(
         output_dir, region, to_plot, model_name_replacement_dict
     )
     if cyto_select:
-            print("cytoplasmic striping intensity")
+        print("cytoplasmic striping intensity")
     else:
         print("overall striping intensity")
 
@@ -210,18 +229,17 @@ def striping_intensity_quantification_region_barplot_all(
     to_plot,
     color_dict,
     model_name_replacement_dict,
-    main_publi_output_folder):
-
-
+    main_publi_output_folder,
+):
     for cyto_select in [True, False]:
-
         axes = striping_intensity_quantification_region_barplot(
-        output_dir,
-        region,
-        to_plot,
-        color_dict,
-        model_name_replacement_dict,
-        cyto_select)
+            output_dir,
+            region,
+            to_plot,
+            color_dict,
+            model_name_replacement_dict,
+            cyto_select,
+        )
 
         plt.savefig(
             P(main_publi_output_folder)
@@ -230,7 +248,14 @@ def striping_intensity_quantification_region_barplot_all(
         plt.show()
 
 
-def intensity_profile_in_region_violinplot(region, to_plot, global_structure_analysis_folder, color_dict, model_name_replacement_dict, axes = None):
+def intensity_profile_in_region_violinplot(
+    region,
+    to_plot,
+    global_structure_analysis_folder,
+    color_dict,
+    model_name_replacement_dict,
+    axes=None,
+):
     rows = []
     for name in to_plot:
         mat = get_matrix(
@@ -256,7 +281,7 @@ def intensity_profile_in_region_violinplot(region, to_plot, global_structure_ana
         cut=0,
         hue="name",
         palette=color_dict,
-        ax=axes
+        ax=axes,
     )
 
     ax.set_xlabel("")
@@ -266,8 +291,8 @@ def intensity_profile_in_region_violinplot(region, to_plot, global_structure_ana
     return axes
 
 
-def slice_to_rect(rs, cs, shape = None):
-    if (shape is None):
+def slice_to_rect(rs, cs, shape=None):
+    if shape is None:
         r0 = rs.start
         r1 = rs.stop
         c0 = cs.start
@@ -276,15 +301,27 @@ def slice_to_rect(rs, cs, shape = None):
         H, W = shape[:2]
 
         # Convert slice -> concrete (start, stop) in array coords
-        r0, r1, _ = rs.indices(H)   # handles None / negative
+        r0, r1, _ = rs.indices(H)  # handles None / negative
         c0, c1, _ = cs.indices(W)
 
     # Rectangle wants (x,y) = (col,row), plus width/height
     return (c0, r0, c1 - c0, r1 - r0)
 
 
-def region_overview_plot(name, regions, colors_region, abbr_region, global_structure_dir, model_name_replacement_dict, norm, height_colorbar, imshow_kwargs = None, rectangle_kwargs = None, axes = None, colorbar_on = True):
-
+def region_overview_plot(
+    name,
+    regions,
+    colors_region,
+    abbr_region,
+    global_structure_dir,
+    model_name_replacement_dict,
+    norm,
+    height_colorbar,
+    imshow_kwargs=None,
+    rectangle_kwargs=None,
+    axes=None,
+    colorbar_on=True,
+):
     matrix = get_matrix(name, global_structure_dir, model_name_replacement_dict)
 
     shape = matrix.shape
@@ -315,14 +352,20 @@ def region_overview_plot(name, regions, colors_region, abbr_region, global_struc
 
     for region_name, slice_ in regions.items():
         color = colors_region[region_name]
-        rectangle_kwargs_ = {"fill": False, "linewidth": 2, "color": color, "alpha": 0.8, **rectangle_kwargs}
+        rectangle_kwargs_ = {
+            "fill": False,
+            "linewidth": 2,
+            "color": color,
+            "alpha": 0.8,
+            **rectangle_kwargs,
+        }
         x, y, w, h = slice_to_rect(slice_[0], slice_[1], shape)
         axes.add_patch(Rectangle((x, y), w, h, **rectangle_kwargs_))
-        axes.text(x, y, abbr_region[region_name], va="bottom", color = color, alpha = 0.8)
+        axes.text(x, y, abbr_region[region_name], va="bottom", color=color, alpha=0.8)
 
     plt.tight_layout()
     h_cbar = height_colorbar / fig.get_size_inches()[1]
-    fig.subplots_adjust(left = 0, right = 1, bottom = 0.1, top = 0.98, hspace=0, wspace = 0)
+    fig.subplots_adjust(left=0, right=1, bottom=0.1, top=0.98, hspace=0, wspace=0)
 
     if colorbar_on:
         cax = fig.add_axes([0.1, 0.05, 0.8, h_cbar])
@@ -332,7 +375,13 @@ def region_overview_plot(name, regions, colors_region, abbr_region, global_struc
 
 
 def plot_compromise_striping_intensity_global_structure_alteration(
-    comparison_table, offset_dict = None, colors = None, annotation = True, markers = None, ax = None, legend_ = True
+    comparison_table,
+    offset_dict=None,
+    colors=None,
+    annotation=True,
+    markers=None,
+    ax=None,
+    legend_=True,
 ):
     if colors:
         fig_width = 5
@@ -368,8 +417,8 @@ def plot_compromise_striping_intensity_global_structure_alteration(
         x="striping intensity",
         y="global structure alteration",
         color=color,
-        hue = hue,
-        palette = palette,
+        hue=hue,
+        palette=palette,
         legend=legend,
         style=style,
         markers=markers,
@@ -385,7 +434,9 @@ def plot_compromise_striping_intensity_global_structure_alteration(
     # e = np.floor(np.log10(np.abs(linear_width_x))).astype(int)
     # print(e)
     # linear_width_x = np.power(10.0, e)
-    axis.set_xscale("symlog", linthresh=linear_width_x * factor_linear_width, linscale = 0.25)
+    axis.set_xscale(
+        "symlog", linthresh=linear_width_x * factor_linear_width, linscale=0.25
+    )
     # axis.set_xscale("asinh", linear_width=linear_width_x * factor_linear_width)
     linear_width_y = (
         comparison_table["global structure alteration"]
@@ -395,7 +446,9 @@ def plot_compromise_striping_intensity_global_structure_alteration(
     # e = np.floor(np.log10(np.abs(linear_width_y))).astype(int)
     # print(e)
     # linear_width_y = np.power(10.0, e)
-    axis.set_yscale("symlog", linthresh=linear_width_y * factor_linear_width, linscale = 0.25)
+    axis.set_yscale(
+        "symlog", linthresh=linear_width_y * factor_linear_width, linscale=0.25
+    )
     # axis.set_yscale("asinh", linear_width=linear_width_y * factor_linear_width)
 
     max_distance = comparison_table["global structure alteration"].max()
@@ -419,15 +472,20 @@ def plot_compromise_striping_intensity_global_structure_alteration(
         for _, row in comparison_table.iterrows():
             axis.annotate(
                 row["model"],
-                xy=(row["striping intensity"], row["global structure alteration"]),  # point
-                xytext=offset_dict.get(row["model"], (0,0)),  # offset: 3px right, 3px up
+                xy=(
+                    row["striping intensity"],
+                    row["global structure alteration"],
+                ),  # point
+                xytext=offset_dict.get(
+                    row["model"], (0, 0)
+                ),  # offset: 3px right, 3px up
                 textcoords="offset points",
                 ha="left",
                 va="bottom",  # label orientation
                 fontsize=9,
             )
 
-    if not(colors is None) and legend:
+    if not (colors is None) and legend:
         plt.legend(loc="center left", bbox_to_anchor=(1.1, 0.5), frameon=True)
 
     axis.grid()
@@ -447,8 +505,8 @@ def compromise_striping_intensity_global_structure_alteration(
     annotation=True,
     colors=None,
     markers=None,
-    ax = None,
-    colors_legend=True
+    ax=None,
+    colors_legend=True,
 ):
     if cyto:
         print(f"striping intensity in cytoplasm")
@@ -456,7 +514,9 @@ def compromise_striping_intensity_global_structure_alteration(
         print(f"striping intensity in cytoplasm + nucleus")
     if not cyto:
         striping_intensity_table_path = (
-            P(global_dir_path) / "striping_intensity" / "striping_intensity_statistics.csv"
+            P(global_dir_path)
+            / "striping_intensity"
+            / "striping_intensity_statistics.csv"
         )
 
         path_table = (
@@ -474,12 +534,15 @@ def compromise_striping_intensity_global_structure_alteration(
             P(output_folder) / "cyto_striping_intensity-global_structure_alteration.csv"
         )
 
-
     striping_intensity_table = pd.read_csv(striping_intensity_table_path)
     distance_to_original_smoothed_path = (
-        P(global_dir_path) / "plots_global_structure" / "statistics_global_structure.csv"
+        P(global_dir_path)
+        / "plots_global_structure"
+        / "statistics_global_structure.csv"
     )
-    distance_to_original_smoothed_table = pd.read_csv(distance_to_original_smoothed_path)
+    distance_to_original_smoothed_table = pd.read_csv(
+        distance_to_original_smoothed_path
+    )
 
     distance_to_original_smoothed_table_sel = distance_to_original_smoothed_table.query(
         "(lane_name == 'rowscolumns') and "
@@ -507,9 +570,11 @@ def compromise_striping_intensity_global_structure_alteration(
     comparison_table.to_csv(path_table)
 
     # plot
-    if not(to_plot is None):
+    if not (to_plot is None):
         # comparison_table = comparison_table.loc[comparison_table.model.isin(to_plot)]
-        comparison_table = comparison_table.set_index("model").loc[to_plot].reset_index()
+        comparison_table = (
+            comparison_table.set_index("model").loc[to_plot].reset_index()
+        )
 
     axis = plot_compromise_striping_intensity_global_structure_alteration(
         comparison_table,
@@ -517,35 +582,40 @@ def compromise_striping_intensity_global_structure_alteration(
         colors=colors,
         annotation=annotation,
         markers=markers,
-        ax = ax,
-        legend_=colors_legend
+        ax=ax,
+        legend_=colors_legend,
     )
 
     return axis
 
 
 def compromise_striping_intensity_global_structure_alteration_cyto_all(
-    global_dir_path, output_folder, model_name_replacement_dict, offset_dict = None, to_plot = None, annotation = True,
-    colors = None, markers = None, cyto_all = None
+    global_dir_path,
+    output_folder,
+    model_name_replacement_dict,
+    offset_dict=None,
+    to_plot=None,
+    annotation=True,
+    colors=None,
+    markers=None,
+    cyto_all=None,
 ):
     if cyto_all is None:
         cyto_all = [True, False]
     all_figs_axes = []
     for cyto in cyto_all:
-
         if cyto:
             print(f"striping intensity in cytoplasm")
         else:
             print(f"striping intensity in cytoplasm + nucleus")
         if not cyto:
-
             path_figure = (
                 P(output_folder) / "striping_intensity-global_structure_alteration.pdf"
             )
         else:
-
             path_figure = (
-                P(output_folder) / "cyto_striping_intensity-global_structure_alteration.pdf"
+                P(output_folder)
+                / "cyto_striping_intensity-global_structure_alteration.pdf"
             )
 
         axis = compromise_striping_intensity_global_structure_alteration(
@@ -569,20 +639,23 @@ def compromise_striping_intensity_global_structure_alteration_cyto_all(
 
 def barplot_global_structure_alteration(
     global_dir_path,
-    output_folder = None,
-    model_name_replacement_dict = None,
+    output_folder=None,
+    model_name_replacement_dict=None,
     to_plot=None,
     colors=None,
     ax=None,
 ):
-
-    if not(to_plot is None):
+    if not (to_plot is None):
         to_plot = [x for x in to_plot if x != "original"]
 
     distance_to_original_smoothed_path = (
-        P(global_dir_path) / "plots_global_structure" / "statistics_global_structure.csv"
+        P(global_dir_path)
+        / "plots_global_structure"
+        / "statistics_global_structure.csv"
     )
-    distance_to_original_smoothed_table = pd.read_csv(distance_to_original_smoothed_path)
+    distance_to_original_smoothed_table = pd.read_csv(
+        distance_to_original_smoothed_path
+    )
 
     distance_to_original_smoothed_table_sel = distance_to_original_smoothed_table.query(
         "(lane_name == 'rowscolumns') and "
@@ -590,19 +663,21 @@ def barplot_global_structure_alteration(
         "(ref == 'original')"
     )
 
-    distance_to_original_smoothed_table_sel = distance_to_original_smoothed_table_sel.rename(
-        columns={"difference": "global structure alteration", "comp": "model"}
-    )
-
-    distance_to_original_smoothed_table_sel["model"] = (
-        distance_to_original_smoothed_table_sel["model"].replace(
-            model_name_replacement_dict
+    distance_to_original_smoothed_table_sel = (
+        distance_to_original_smoothed_table_sel.rename(
+            columns={"difference": "global structure alteration", "comp": "model"}
         )
     )
-    if not(to_plot is None):
-        distance_to_original_smoothed_table_sel = distance_to_original_smoothed_table_sel.query("model in @to_plot")
 
-
+    distance_to_original_smoothed_table_sel[
+        "model"
+    ] = distance_to_original_smoothed_table_sel["model"].replace(
+        model_name_replacement_dict
+    )
+    if not (to_plot is None):
+        distance_to_original_smoothed_table_sel = (
+            distance_to_original_smoothed_table_sel.query("model in @to_plot")
+        )
 
     if colors is None:
         palette = None
@@ -618,8 +693,8 @@ def barplot_global_structure_alteration(
         x="model",
         y="global structure alteration",
         hue=hue,
-        palette = palette,
-        ax = ax
+        palette=palette,
+        ax=ax,
     )
     linear_width_y = (
         distance_to_original_smoothed_table_sel["global structure alteration"]
@@ -629,17 +704,15 @@ def barplot_global_structure_alteration(
     # e = np.floor(np.log10(np.abs(linear_width_y))).astype(int)
     # print(e)
     # linear_width_y = np.power(10.0, e)
-    axis.set_yscale("symlog", linthresh=linear_width_y, linscale = 0.25)
+    axis.set_yscale("symlog", linthresh=linear_width_y, linscale=0.25)
 
     ax.set_xlabel("")
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
 
     plt.tight_layout()
     pad_axes_in_points(axis, pad_left=0, pad_right=0, pad_bottom=0, pad_top=20)
-    if not(output_folder is None):
-        path_figure = (
-                    P(output_folder) / "barplot_global_structure_alteration.pdf"
-                )
+    if not (output_folder is None):
+        path_figure = P(output_folder) / "barplot_global_structure_alteration.pdf"
         plt.savefig(path_figure)
     return axis
 
@@ -652,16 +725,14 @@ def global_structure_plot(
     model_name_replacement_dict=None,
     to_plot=None,
     linestyle_dict=None,
-    broken_axes_1_specs = None,
-    broken_axes_2_specs = None,
-    ncol_legend = 3,
-    axes_not_broken = None
+    broken_axes_1_specs=None,
+    broken_axes_2_specs=None,
+    ncol_legend=3,
+    axes_not_broken=None,
 ):
-    matrices_folder = P(
-        input_folder / "destriping_matrices"
-    )
+    matrices_folder = P(input_folder / "destriping_matrices")
     df = pd.read_csv(matrices_folder / "df_results_path_matrices.csv")
-    if not(model_name_replacement_dict is None):
+    if not (model_name_replacement_dict is None):
         df["name"] = df["name"].replace(model_name_replacement_dict)
     if to_plot is None:
         to_plot = df["name"].tolist()
@@ -670,20 +741,20 @@ def global_structure_plot(
 
     k = 100
 
-    axis_1_broken = not(broken_axes_1_specs is None)
+    axis_1_broken = not (broken_axes_1_specs is None)
     axis_2_broken = not (broken_axes_2_specs is None)
     no_broken_axis = (broken_axes_1_specs is None) and (broken_axes_2_specs is None)
 
     if no_broken_axis:
         if axes_not_broken is None:
-            fig, axes = plt.subplots(2, 1, figsize=(3.4, 2.4*2))
+            fig, axes = plt.subplots(2, 1, figsize=(3.4, 2.4 * 2))
         else:
             fig = axes_not_broken[-1].get_figure()
             axes = axes_not_broken
     else:
         fig = plt.figure(figsize=(3.4, 2.4 * 2))
-        sps1, sps2 = GridSpec(2, 1, figure = fig)
-        if not(broken_axes_1_specs is None):
+        sps1, sps2 = GridSpec(2, 1, figure=fig)
+        if not (broken_axes_1_specs is None):
             bax_1 = brokenaxes(**broken_axes_1_specs, subplot_spec=sps1)
         else:
             bax_1 = fig.add_subplot(sps1)
@@ -707,8 +778,8 @@ def global_structure_plot(
                 label=name,
                 alpha=0.5,
                 lw=1,
-                color= color_dict[name],
-                ls = linestyle_dict.get(name, "solid")
+                color=color_dict[name],
+                ls=linestyle_dict.get(name, "solid"),
             )
             # ax.set_title(lane_name)
             if no_broken_axis:
@@ -743,7 +814,7 @@ def global_structure_plot(
 
     plt.tight_layout()
 
-    if not(no_broken_axis):
+    if not (no_broken_axis):
         [x.remove() for x in bax_1.diag_handles]
         bax_1.draw_diags()
         [x.remove() for x in bax_2.diag_handles]
@@ -751,9 +822,10 @@ def global_structure_plot(
 
         plt.tight_layout()
 
-    plt.savefig(P(output_folder) / "global_structure_sum.pdf", bbox_inches = "tight")
+    plt.savefig(P(output_folder) / "global_structure_sum.pdf", bbox_inches="tight")
 
     return axes
+
 
 def check_which_results_in_to_plot(
     to_plot, global_dir_path, model_name_replacement_dict
@@ -762,38 +834,48 @@ def check_which_results_in_to_plot(
         P(global_dir_path) / "striping_intensity" / "striping_intensity_statistics.csv"
     )
     striping_intensity_table = pd.read_csv(striping_intensity_table_path)
-    names_results = striping_intensity_table["name"].replace(model_name_replacement_dict).tolist()
+    names_results = (
+        striping_intensity_table["name"].replace(model_name_replacement_dict).tolist()
+    )
     return [x for x in to_plot if (x in names_results)]
 
-def global_structure_plot_all_methods(global_structure_analysis_folder, supp_publi_output_folder):
-    
-    from src.experiments_analysis.plots_ismb import model_name_replacement_dict, color_dict
 
-    
-    to_plot = ["ours",
-           "ours_N.I",
-           "ours_P2.I",
-           "bin-level norm.", 
-           "original",
-           "b2c", 
-           "b2c-sym",
-           "b2c-sym-nucl", 
-           "b2c-sym-med",
-           "b2c-sym-med-nucl",
-           "MRSE",
-           "test_extra_entry"
-        ]
+def global_structure_plot_all_methods(
+    global_structure_analysis_folder, supp_publi_output_folder
+):
+    from src.experiments_analysis.plots_ismb import (
+        model_name_replacement_dict,
+        color_dict,
+    )
 
-    linestyle_dict = {"b2c-sym-nucl": "dotted",
-                    "b2c-sym-med-nucl": "dotted",
-                    "ours_N.I": "dotted",
-                    "ours_P2.I": "dashed"
-                    }
+    to_plot = [
+        "ours",
+        "ours_N.I",
+        "ours_P2.I",
+        "bin-level norm.",
+        "original",
+        "b2c",
+        "b2c-sym",
+        "b2c-sym-nucl",
+        "b2c-sym-med",
+        "b2c-sym-med-nucl",
+        "MRSE",
+        "test_extra_entry",
+    ]
 
-    markers_dict = {"b2c-sym-nucl": "D",
-                    "b2c-sym-med-nucl": "D",
-                    "ours_N.I": "D",
-                    "ours_P2.I": "s"}
+    linestyle_dict = {
+        "b2c-sym-nucl": "dotted",
+        "b2c-sym-med-nucl": "dotted",
+        "ours_N.I": "dotted",
+        "ours_P2.I": "dashed",
+    }
+
+    markers_dict = {
+        "b2c-sym-nucl": "D",
+        "b2c-sym-med-nucl": "D",
+        "ours_N.I": "D",
+        "ours_P2.I": "s",
+    }
     markers_dict_n = {key: markers_dict.get(key, "o") for key in to_plot}
     markers_dict = markers_dict_n
 
@@ -802,14 +884,14 @@ def global_structure_plot_all_methods(global_structure_analysis_folder, supp_pub
     )
 
     compromise_striping_intensity_global_structure_alteration_cyto_all(
-        global_structure_analysis_folder, 
-        supp_publi_output_folder, 
-        model_name_replacement_dict, 
-        offset_dict = None, 
-        to_plot = to_plot_, 
-        annotation = False, 
-        colors = color_dict,
-        markers=markers_dict
+        global_structure_analysis_folder,
+        supp_publi_output_folder,
+        model_name_replacement_dict,
+        offset_dict=None,
+        to_plot=to_plot_,
+        annotation=False,
+        colors=color_dict,
+        markers=markers_dict,
     )
 
     axis = global_structure_plot(
@@ -875,7 +957,7 @@ def add_curves_to_right(axes, to_plot, df, color_dict):
 
 def align_left_right_plots(fig, axes):
     fig.canvas.draw()
-    for i, _ in enumerate(axes[:,0]):
+    for i, _ in enumerate(axes[:, 0]):
         ax_img = axes[i, 0]
         pos = ax_img.get_position()
         extent = ax_img.get_window_extent()
@@ -888,7 +970,14 @@ def align_left_right_plots(fig, axes):
     fig.canvas.draw()
 
 
-def get_summary_count_per_row_for_region(output_dir, region_slice, to_plot, model_name_replacement_dict, fun = "mean", data_select = True):
+def get_summary_count_per_row_for_region(
+    output_dir,
+    region_slice,
+    to_plot,
+    model_name_replacement_dict,
+    fun="mean",
+    data_select=True,
+):
     output_path = P(output_dir) / "destriped_summary_df.pkl"
     global_structure_analysis_folder = P(output_dir) / "global_structure_analysis"
     destriped_summary_df = pd.read_pickle(output_path)

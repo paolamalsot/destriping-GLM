@@ -2,13 +2,14 @@ import scipy.sparse as sp
 import numpy as np
 from scipy.sparse import vstack
 
+
 def indexing_csr(csr_array, idx_np_array, chunksize):
     # https://stackoverflow.com/a/20344429
     list_chunks = np.array_split(idx_np_array, chunksize)
-    chunks = [csr_array[chunk] 
-            for chunk in list_chunks]
+    chunks = [csr_array[chunk] for chunk in list_chunks]
     result = vstack(chunks)
     return result
+
 
 def convert_to_32_bit(A, *, copy=True, check_overflow=True):
     """

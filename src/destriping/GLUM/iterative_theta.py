@@ -12,7 +12,7 @@ def theta_md(
     limit=20,
     eps=np.finfo(float).eps ** 0.25,
     mu_clip=10 ** (-10),
-    min_t0 = 10 ** (-10)
+    min_t0=10 ** (-10),
 ):
     """
     Python translation of the R function:
@@ -34,7 +34,7 @@ def theta_md(
         float: The estimated theta (t0) parameter.
     """
 
-    mu = np.clip(mu, a_min=mu_clip, a_max = None)
+    mu = np.clip(mu, a_min=mu_clip, a_max=None)
 
     if weights is None:
         weights = np.ones_like(y, dtype=float)
@@ -80,7 +80,7 @@ def theta_md(
         warnings.warn(f"estimate truncated at {min_t0}")
         t0 = max(t0, min_t0)
 
-    return 1/float(t0)
+    return 1 / float(t0)
 
 
 def theta_cal(sol, df):

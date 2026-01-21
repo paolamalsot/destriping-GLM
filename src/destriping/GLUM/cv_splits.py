@@ -2,6 +2,7 @@
 import numpy as np
 from sklearn.model_selection._split import check_cv
 
+
 def group_indices(df):
     """
     Splits the DataFrame into four groups based on the medians of columns 'i' and 'j'.
@@ -27,6 +28,7 @@ def cv_splits(df):
         if len(test_idx) > 0
     ]
     return cv_splits
+
 
 def default_cv_splits(df):
     y = np.arange(len(df))

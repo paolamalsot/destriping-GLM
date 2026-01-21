@@ -8,7 +8,9 @@ import json
 import logging
 import os
 import gc
-from experiments.src.custom_destriping_benchmark.lightweight_funs import save_n_counts_adjusted_counts
+from experiments.src.custom_destriping_benchmark.lightweight_funs import (
+    save_n_counts_adjusted_counts,
+)
 import pickle
 import numpy as np
 import inspect
@@ -17,12 +19,14 @@ from src.destriping.GLUM.glum_loggers import set_level_all_glum_loggers
 
 set_level_all_glum_loggers(logging.DEBUG)
 
+
 def inspect_signature_from_path(path):
-    module_path, class_name = path.rsplit('.', 1)
+    module_path, class_name = path.rsplit(".", 1)
     module = import_module(module_path)
     class_ = getattr(module, class_name)
     signature = inspect.signature(class_.__init__)
     return signature
+
 
 def parse_config(original_root, cfg):
     data_path = os.path.join(original_root, cfg.dataset.path_data)
@@ -35,8 +39,8 @@ def parse_config(original_root, cfg):
     print(data)
     # check if the class of model has an attribute timeout, and if yes, set it to the current hydra timeout - 100
     instance = HydraConfig.instance()
-    if (
-        not (instance.cfg is None) and ("timeout_min" in HydraConfig.get().launcher.keys())
+    if not (instance.cfg is None) and (
+        "timeout_min" in HydraConfig.get().launcher.keys()
     ):  # debug purposes
         timeout_config = HydraConfig.get().launcher.timeout_min
     else:
@@ -45,7 +49,7 @@ def parse_config(original_root, cfg):
         timeout_sec = (timeout_config - 120) * 60  # convert minutes to seconds
         logging.info(f"Setting timeout for model to {timeout_sec} seconds")
         OmegaConf.set_struct(cfg, False)
-        cfg.model_args.timeout=max(timeout_sec, 1)
+        cfg.model_args.timeout = max(timeout_sec, 1)
 
     if "data_index_selection_path" in cfg.dataset.keys():
         index_selection_path = cfg.dataset.index_selection_path
@@ -64,7 +68,7 @@ def parse_config(original_root, cfg):
     fitting_time = stop - start
 
     sol_output_dir = os.path.join(output_dir, "sol")
-    os.makedirs(sol_output_dir, exist_ok= True)
+    os.makedirs(sol_output_dir, exist_ok=True)
     sol, dist, dist_params = model.get_sol()
     sol.save(sol_output_dir)
 
@@ -83,7 +87,14 @@ def parse_config(original_root, cfg):
         pickle.dump(model.glm_, handle)
 
     # destriping
-    destriping_calls = get_all_destripe_calls(sol, model, data, cell_id_label = cfg.dataset.cell_id_label, dist = dist, dist_params = dist_params)
+    destriping_calls = get_all_destripe_calls(
+        sol,
+        model,
+        data,
+        cell_id_label=cfg.dataset.cell_id_label,
+        dist=dist,
+        dist_params=dist_params,
+    )
     destriping_time_dict = {}
 
     del model
@@ -94,7 +105,7 @@ def parse_config(original_root, cfg):
         start = time.time()
         destriped_data = call()
         stop = time.time()
-        destriping_time_dict[name] = stop-start
+        destriping_time_dict[name] = stop - start
         destriped_data_output_dir = os.path.join(output_dir, "destriped_data", name)
         save_n_counts_adjusted_counts(destriped_data, destriped_data_output_dir)
 
@@ -102,10 +113,7 @@ def parse_config(original_root, cfg):
         gc.collect()
 
     # save time dict
-    time_dict = {
-        "fitting_time": fitting_time,
-        "destripe_time": destriping_time_dict
-    }
+    time_dict = {"fitting_time": fitting_time, "destripe_time": destriping_time_dict}
 
     with open("time_dict.json", "w") as json_file:
         json.dump(time_dict, json_file)

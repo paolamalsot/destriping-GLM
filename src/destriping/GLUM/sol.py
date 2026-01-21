@@ -6,6 +6,7 @@ from types import SimpleNamespace
 def mu_from_sol(sol, df):
     return df["i"].map(sol.h) * df["j"].map(sol.w) * df["p"].map(sol.c)
 
+
 # def get_mu_from_sol(sol, df):
 #     return (
 #         sol.h.get(df["i"].astype(int), 1.0).values

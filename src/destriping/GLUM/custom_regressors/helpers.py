@@ -12,6 +12,7 @@ RegressorTypeLike: TypeAlias = (
     | type["IterativeThetaGLM"]
 )
 
+
 def wrap_dict_with_prefix(d, prefix):
     """Return a new flat dict where each key is prefixed with `${prefix}__`."""
     return {f"{prefix}__{k}": v for k, v in d.items()}
@@ -31,7 +32,7 @@ def split_kwargs_by_prefix(kwargs, prefix):
 
 def remove_prefix_from_kwargs(kwargs, prefix):
     own, nested = split_kwargs_by_prefix(kwargs, prefix)
-    assert not(own), f"Python dict not empty: {own}"
+    assert not (own), f"Python dict not empty: {own}"
     return nested
 
 

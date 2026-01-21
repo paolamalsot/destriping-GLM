@@ -17,11 +17,17 @@ from pandas.api.types import is_string_dtype
 from types import SimpleNamespace
 import logging
 from src.destriping.GLUM.custom_regressors.cv_regressor import CustomCVRegressor
-from src.destriping.GLUM.custom_regressors.iterative_theta_after_cv_regressor import IterativeThetaAfterCVRegressor
-from src.destriping.GLUM.custom_regressors.iterative_theta_regressor import IterativeThetaGLM
+from src.destriping.GLUM.custom_regressors.iterative_theta_after_cv_regressor import (
+    IterativeThetaAfterCVRegressor,
+)
+from src.destriping.GLUM.custom_regressors.iterative_theta_regressor import (
+    IterativeThetaGLM,
+)
 from glum import GeneralizedLinearRegressor, GeneralizedLinearRegressorCV
 from dask_ml.preprocessing import Categorizer
+
 logger = logging.getLogger("Glum fit")
+
 
 def extract_categories_dict_from_categorizer(ce):
     categories_dict = {
@@ -60,7 +66,9 @@ def factor_to_glum_coef(start, levels, name_level, epsilon):
 
     if (start < epsilon).any():
         n_vals = (start < epsilon).sum()
-        warn(f"In category {name_level}, {n_vals} values smaller than epsilon ({epsilon}). Clipping.")
+        warn(
+            f"In category {name_level}, {n_vals} values smaller than epsilon ({epsilon}). Clipping."
+        )
 
     coef_with_dropped = (
         start.reindex(levels).fillna(1).clip(lower=epsilon).apply(np.log)
@@ -69,12 +77,28 @@ def factor_to_glum_coef(start, levels, name_level, epsilon):
     intercept_contribution = coef_with_dropped.iloc[0]
     coef_contribution = coef_with_dropped.iloc[1:] - intercept_contribution
 
-    features_names_contribution = coef_contribution.index.to_series().apply(lambda x: name_level + "[" + str(x) + "]").values.tolist()
-    return coef_contribution, intercept_contribution, features_names_contribution, dropped_level_name
+    features_names_contribution = (
+        coef_contribution.index.to_series()
+        .apply(lambda x: name_level + "[" + str(x) + "]")
+        .values.tolist()
+    )
+    return (
+        coef_contribution,
+        intercept_contribution,
+        features_names_contribution,
+        dropped_level_name,
+    )
 
 
-def h_w_c_to_glum_coef(h: pd.Series, w: pd.Series, c: pd.Series, levels_i: list[str], levels_j: list[str], levels_p: list[str], epsilon: float = 1e-12):
-
+def h_w_c_to_glum_coef(
+    h: pd.Series,
+    w: pd.Series,
+    c: pd.Series,
+    levels_i: list[str],
+    levels_j: list[str],
+    levels_p: list[str],
+    epsilon: float = 1e-12,
+):
     # Convert the h,w,c to the glum_coef such that the underlying model for the mean is h * w * c.
     # We assume that the glum has a log-link with drop_first = True and fit_intercept = True
     # levels_i, levels_j, levels_p are the levels expected by the glum-model (including the dropped category)
@@ -93,15 +117,15 @@ def h_w_c_to_glum_coef(h: pd.Series, w: pd.Series, c: pd.Series, levels_i: list[
     assert is_string_dtype(c.index)
 
     intercept = 0
-    coef = [0] #for 0 intercept
+    coef = [0]  # for 0 intercept
     features_names = []
     dropped_levels_dict = {}
 
     for name_level, levels, start in [
-        ("p", levels_p, c), ("i", levels_i, h),
+        ("p", levels_p, c),
+        ("i", levels_i, h),
         ("j", levels_j, w),
     ]:
-
         (
             coef_contribution,
             intercept_contribution,
@@ -125,9 +149,7 @@ def c_to_offset(c, cell_id, epsilon: float = 1e-12):
 
     if (c < epsilon).any():
         n_vals = (c < epsilon).sum()
-        warn(
-            f"In c, {n_vals} values smaller than epsilon ({epsilon}). Clipping."
-        )
+        warn(f"In c, {n_vals} values smaller than epsilon ({epsilon}). Clipping.")
 
     # warnings about missing levels in c
     missing_levels = list(set(cell_id.values).difference(set(c.index.tolist())))
@@ -145,7 +167,6 @@ def h_w_to_glum_coef(
     levels_j: list[str],
     epsilon: float = 1e-12,
 ):
-
     # same as h_w_c_to_glum_coef but without c
 
     # initial checks
@@ -162,7 +183,6 @@ def h_w_to_glum_coef(
         ("i", levels_i, h),
         ("j", levels_j, w),
     ]:
-
         (
             coef_contribution,
             intercept_contribution,
@@ -267,9 +287,8 @@ def _build_iterative_with_sklearn_cv(
     cv,
     warm_start_alpha,
     regressorCV_one_SE_rule: bool,
-    parallel: bool
+    parallel: bool,
 ):
-
     param_grid = pop_param_grid_from_GLM_args(glm_arguments)
 
     match fit_theta_iter_loc:
@@ -297,7 +316,7 @@ def _build_iterative_with_sklearn_cv(
                 "cv": cv,
                 "warm_start_alpha": warm_start_alpha,
                 "parallel": parallel,
-                ** wrap_dict_with_prefix(glm_arguments, "regressor"),
+                **wrap_dict_with_prefix(glm_arguments, "regressor"),
             }
             inner_regressor_class = CustomCVRegressor
             return IterativeThetaGLM(
@@ -313,8 +332,8 @@ def _build_iterative_with_sklearn_cv(
                 param_grid=param_grid,
                 one_SE_rule=regressorCV_one_SE_rule,
                 cv=cv,
-                warm_start_alpha = warm_start_alpha,
-                parallel = parallel,
+                warm_start_alpha=warm_start_alpha,
+                parallel=parallel,
                 theta_max_iter=fit_theta_max_iter,
                 theta_init=theta_init,
                 regressor_class=GeneralizedLinearRegressor,
@@ -337,15 +356,14 @@ def _build_iterative_regressor(
     regressorCV_one_SE_rule: bool,
 ):
     if sklearnCV:
-
         return _build_iterative_with_sklearn_cv(
             fit_theta_iter_loc=fit_theta_iter_loc,
             theta_init=theta_init,
             fit_theta_max_iter=fit_theta_max_iter,
             glm_arguments=glm_arguments,
             cv=cv,
-            warm_start_alpha = warm_start_alpha,
-            parallel = parallel,
+            warm_start_alpha=warm_start_alpha,
+            parallel=parallel,
             regressorCV_one_SE_rule=regressorCV_one_SE_rule,
         )
 
@@ -375,10 +393,9 @@ def _build_non_iterative_regressor(
             args_supp = {"n_jobs": -1}
         else:
             args_supp = {}
-        return GeneralizedLinearRegressorCV(**glm_arguments, cv = cv, **args_supp)
+        return GeneralizedLinearRegressorCV(**glm_arguments, cv=cv, **args_supp)
 
     if sklearnCV:
-
         param_grid = pop_param_grid_from_GLM_args(glm_arguments)
 
         return CustomCVRegressor(
@@ -386,12 +403,13 @@ def _build_non_iterative_regressor(
             one_SE_rule=sklearnCV_one_SE_rule,
             regressor_class=GeneralizedLinearRegressor,
             cv=cv,
-            parallel = parallel,
+            parallel=parallel,
             warm_start_alpha=warm_start_alpha,
             **wrap_dict_with_prefix(glm_arguments, "regressor"),
         )
 
     return GeneralizedLinearRegressor(**glm_arguments)
+
 
 def categorizer_glum(df, freeze_c):
     if freeze_c:
@@ -403,6 +421,7 @@ def categorizer_glum(df, freeze_c):
     categories_dict = extract_categories_dict_from_categorizer(glm_categorizer)
     return categoricals, glm_categorizer, categories_dict
 
+
 def fit_GLM_glum(
     df,
     h_start=None,
@@ -413,8 +432,8 @@ def fit_GLM_glum(
     sklearnCV=False,
     sklearnCV_one_SE_rule=True,
     cv=None,
-    warm_start_alpha = False,
-    parallel = False,
+    warm_start_alpha=False,
+    parallel=False,
     fit_theta_iter=False,
     fit_theta_max_iter=3,
     fit_theta_iter_loc="in",
@@ -453,13 +472,15 @@ def fit_GLM_glum(
 
     if freeze_c:
         if not (h_start is None) and not (w_start is None):
-            start_params, start_features_names, start_dropped_levels_dict = (
-                h_w_to_glum_coef(
-                    h_start,
-                    w_start,
-                    levels_i=categories_dict["i"],
-                    levels_j=categories_dict["j"],
-                )
+            (
+                start_params,
+                start_features_names,
+                start_dropped_levels_dict,
+            ) = h_w_to_glum_coef(
+                h_start,
+                w_start,
+                levels_i=categories_dict["i"],
+                levels_j=categories_dict["j"],
             )
         elif not (h_start is None) or not (w_start is None):
             start_params = None
@@ -472,15 +493,17 @@ def fit_GLM_glum(
     else:
         if not (h_start is None) and not (w_start is None) and not (c_start is None):
             # Build start_params from your h_hat, w_hat *and* a rough p median
-            start_params, start_features_names, start_dropped_levels_dict = (
-                h_w_c_to_glum_coef(
-                    h_start,
-                    w_start,
-                    c_start,
-                    levels_i=categories_dict["i"],
-                    levels_j=categories_dict["j"],
-                    levels_p=categories_dict["p"],
-                )
+            (
+                start_params,
+                start_features_names,
+                start_dropped_levels_dict,
+            ) = h_w_c_to_glum_coef(
+                h_start,
+                w_start,
+                c_start,
+                levels_i=categories_dict["i"],
+                levels_j=categories_dict["j"],
+                levels_p=categories_dict["p"],
             )
         elif not (h_start is None) or not (w_start is None) or not (c_start is None):
             start_params = None
@@ -525,8 +548,8 @@ def fit_GLM_glum(
             fit_theta_max_iter=fit_theta_max_iter,
             glm_arguments=glm_arguments,
             cv=cv,
-            warm_start_alpha = warm_start_alpha,
-            parallel = parallel,
+            warm_start_alpha=warm_start_alpha,
+            parallel=parallel,
             regressorCV_one_SE_rule=sklearnCV_one_SE_rule,
         )
 
@@ -535,8 +558,8 @@ def fit_GLM_glum(
             regressorCV=regressorCV,
             sklearnCV=sklearnCV,
             cv=cv,
-            warm_start_alpha = warm_start_alpha,
-            parallel = parallel,
+            warm_start_alpha=warm_start_alpha,
+            parallel=parallel,
             glm_arguments=glm_arguments,
             sklearnCV_one_SE_rule=sklearnCV_one_SE_rule,
         )

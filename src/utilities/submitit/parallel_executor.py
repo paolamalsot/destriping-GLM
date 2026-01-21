@@ -12,24 +12,25 @@ from src.utilities.submitit.slurm_executor import MySlurmExecutor
 import time
 from submitit.core.utils import FailedJobError
 
+
 def remove_slurm_keys_from_environ():
     slurm_keys = [key for key in os.environ if key.startswith("SLURM_")]
     for key in slurm_keys:
         del os.environ[key]
 
+
 def on_cluster():
     """Check if running on a compute cluster."""
-    on_cluster = 'biomed' in socket.gethostname()
+    on_cluster = "biomed" in socket.gethostname()
     logging.debug(f"{on_cluster=}")
     return on_cluster
 
-def setup_executor(output_folder, mem, n_cpus, time_min, account = None, exclude = None):
+
+def setup_executor(output_folder, mem, n_cpus, time_min, account=None, exclude=None):
     """Setup Submitit executor for parallel tasks."""
     executor = MySlurmExecutor(folder=os.path.join(output_folder, "submitit_logs"))
     executor.update_parameters(
-        timeout_min=time_min,  # 1 hour
-        mem_gb=mem,       # GB per task
-        cpus_per_task=n_cpus
+        timeout_min=time_min, mem_gb=mem, cpus_per_task=n_cpus  # 1 hour  # GB per task
     )
 
     if account is not None:
@@ -38,14 +39,16 @@ def setup_executor(output_folder, mem, n_cpus, time_min, account = None, exclude
         executor.update_parameters(exclude=exclude)
     return executor
 
+
 def distance_matrix_executor(output_folder):
     mem = 10
     time_min = 60
     n_cpus = 30
     return setup_executor(output_folder, mem, n_cpus, time_min)
 
+
 def map_array_from_submitit_executor(executor):
-    #WARNING IN CONCURRENT.FUTURES STOPS WHEN THE SHORTEST ITERABLE IS EXHAUSTED
+    # WARNING IN CONCURRENT.FUTURES STOPS WHEN THE SHORTEST ITERABLE IS EXHAUSTED
     def map_fun(*args, **kwargs):
         jobs = executor.map_array(*args, **kwargs)
         results = []
@@ -64,16 +67,20 @@ def map_array_from_submitit_executor(executor):
             raise ValueError("one job failed...")
 
         return results
+
     return map_fun
+
 
 def map_array_from_threadpool_executor(executor_):
     def map_fun(*args, **kwargs):
         with executor_ as executor:
             results = executor.map(*args, **kwargs)
             return list(results)
+
     return map_fun
 
-def get_map_array_fun(submitit_executor, threadpool_executor = None, use_submitit = True):
+
+def get_map_array_fun(submitit_executor, threadpool_executor=None, use_submitit=True):
     if threadpool_executor is None:
         threadpool_executor = ThreadPoolExecutor(max_workers=1)
 
@@ -82,9 +89,10 @@ def get_map_array_fun(submitit_executor, threadpool_executor = None, use_submiti
         map_fun = map_array_from_submitit_executor(executor)
 
     else:
-        executor_  = threadpool_executor
+        executor_ = threadpool_executor
         map_fun = map_array_from_threadpool_executor(executor_)
     return map_fun
+
 
 def submit_with_throttle(submitit_executor, fun, args, kwargs, retries=3, wait_time=60):
     # wait time is in seconds
@@ -100,8 +108,11 @@ def submit_with_throttle(submitit_executor, fun, args, kwargs, retries=3, wait_t
                 time.sleep(wait_time)
             else:
                 print(f"[Submitit Retry] All {retries} attempts failed.")
-                raise RuntimeError(f"Submitit job failed after {retries} retries.") from last_error
+                raise RuntimeError(
+                    f"Submitit job failed after {retries} retries."
+                ) from last_error
     return job
+
 
 def get_execute_fun(submitit_executor, use_submitit, dir_):
     """
@@ -124,7 +135,7 @@ def get_execute_fun(submitit_executor, use_submitit, dir_):
             Positional arguments to pass to the function.
         - kwargs: dict
             Keyword arguments to pass to the function.
-        
+
         When `use_submitit` is True and `on_cluster()` returns True, the function
         will submit the job to the cluster and wait for the result.
         Otherwise, the function will be executed locally.
@@ -135,16 +146,19 @@ def get_execute_fun(submitit_executor, use_submitit, dir_):
 
         def execute_fun(fun, *args, **kwargs):
             # Submit the job to the cluster and wait for the result
-            #job = executor.submit(fun, *args, **kwargs)
+            # job = executor.submit(fun, *args, **kwargs)
             job = submit_with_throttle(executor, fun, args, kwargs)
             res = job.result()
             return res
+
     else:
+
         def execute_fun(fun, *args, **kwargs):
             # Execute the function locally
             return fun(*args, **kwargs)
 
     return execute_fun
+
 
 # from experiments.scripts.destriping_poisson.supplementary_analyses.analysis import load_default_submitit_executor_dict
 # from experiments.scripts.destriping_poisson.supplementary_analyses.utils.parallel_executor import get_execute_fun
@@ -198,7 +212,16 @@ def run_tasks_with_executor(executor, tasks: List[Callable[[], None]]):
 
     return results, errors
 
-def df_apply_in_chunks(df, fun_by_row, submitit_executor, args=(), load_supplementary_args_fun=None, n_chunks=None, chunksize=None):
+
+def df_apply_in_chunks(
+    df,
+    fun_by_row,
+    submitit_executor,
+    args=(),
+    load_supplementary_args_fun=None,
+    n_chunks=None,
+    chunksize=None,
+):
     """
     Apply a function to a DataFrame by row in parallel using submitit, splitting the DataFrame into chunks.
 
@@ -238,7 +261,9 @@ def df_apply_in_chunks(df, fun_by_row, submitit_executor, args=(), load_suppleme
     chunks = np.array_split(df, n_chunks)
 
     def chunk_apply(chunk):
-        supplementary_args = load_supplementary_args_fun(chunk) if load_supplementary_args_fun else {}
+        supplementary_args = (
+            load_supplementary_args_fun(chunk) if load_supplementary_args_fun else {}
+        )
         merged_args = {**supplementary_args, **args}
         return chunk.apply(lambda row: fun_by_row(row, **merged_args), axis=1)
 

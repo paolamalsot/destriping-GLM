@@ -2,7 +2,16 @@ import numpy as np
 import pandas as pd
 from src.spatialAdata.spatialAdata import spatialAdata
 
-def quantile_init(array_row, n_counts, quant_init, rows_idx_opt=None, epsilon=0.0, nucl_selector=None, nucl_only=False):
+
+def quantile_init(
+    array_row,
+    n_counts,
+    quant_init,
+    rows_idx_opt=None,
+    epsilon=0.0,
+    nucl_selector=None,
+    nucl_only=False,
+):
     """
     Initialize the parameters for the destriping algorithm using quantiles.
 
@@ -19,10 +28,7 @@ def quantile_init(array_row, n_counts, quant_init, rows_idx_opt=None, epsilon=0.
     - h (pd.Series): Row factors as a pandas Series, with other factors set to one.
     """
     # Create a DataFrame for processing
-    data = pd.DataFrame({
-        "array_row": array_row,
-        "n_counts": n_counts
-    })
+    data = pd.DataFrame({"array_row": array_row, "n_counts": n_counts})
 
     # Filter data if nucl_only is True
     if nucl_only:
@@ -36,8 +42,8 @@ def quantile_init(array_row, n_counts, quant_init, rows_idx_opt=None, epsilon=0.
     h = filtered_data.groupby("array_row")["n_counts"].quantile(q=quant_init)
     if rows_idx_opt is not None:
         # if some rows_idx are missing, fill them with ones (this can happen for example if we do quantiles_nucl init and rows_idx_opt contain rows wo any nucl)
-        h_opt = h.get(rows_idx_opt, default = 1.0)
-        #h_opt = h[rows_idx_opt].copy()
+        h_opt = h.get(rows_idx_opt, default=1.0)
+        # h_opt = h[rows_idx_opt].copy()
     else:
         h_opt = h.copy()
     h_opt /= np.mean(h_opt)
@@ -48,11 +54,31 @@ def quantile_init(array_row, n_counts, quant_init, rows_idx_opt=None, epsilon=0.
 
     return h
 
-def sum_init(array_row, n_counts, fun: callable, rows_idx_opt=None, epsilon=0.0, nucl_selector=None, nucl_only=False):
-    fun = lambda x: np.sum(x)
-    return params_init_with_fun(array_row, n_counts, fun, rows_idx_opt, epsilon, nucl_selector, nucl_only)
 
-def custom_fun_init(array_row, n_counts, fun: callable, rows_idx_opt=None, epsilon=0.0, nucl_selector=None, nucl_only=False):
+def sum_init(
+    array_row,
+    n_counts,
+    fun: callable,
+    rows_idx_opt=None,
+    epsilon=0.0,
+    nucl_selector=None,
+    nucl_only=False,
+):
+    fun = lambda x: np.sum(x)
+    return params_init_with_fun(
+        array_row, n_counts, fun, rows_idx_opt, epsilon, nucl_selector, nucl_only
+    )
+
+
+def custom_fun_init(
+    array_row,
+    n_counts,
+    fun: callable,
+    rows_idx_opt=None,
+    epsilon=0.0,
+    nucl_selector=None,
+    nucl_only=False,
+):
     """
     Initialize the parameters for the destriping algorithm using a lane-specific function called fun.
 
@@ -70,10 +96,7 @@ def custom_fun_init(array_row, n_counts, fun: callable, rows_idx_opt=None, epsil
     """
 
     # Create a DataFrame for processing
-    data = pd.DataFrame({
-        "array_row": array_row,
-        "n_counts": n_counts
-    })
+    data = pd.DataFrame({"array_row": array_row, "n_counts": n_counts})
 
     # Filter data if nucl_only is True
     if nucl_only:
@@ -87,8 +110,8 @@ def custom_fun_init(array_row, n_counts, fun: callable, rows_idx_opt=None, epsil
     h = filtered_data.groupby("array_row")["n_counts"].apply(fun)
     if rows_idx_opt is not None:
         # if some rows_idx are missing, fill them with ones (this can happen for example if we do quantiles_nucl init and rows_idx_opt contain rows wo any nucl)
-        h_opt = h.get(rows_idx_opt, default = 1.0)
-        #h_opt = h[rows_idx_opt].copy()
+        h_opt = h.get(rows_idx_opt, default=1.0)
+        # h_opt = h[rows_idx_opt].copy()
     else:
         h_opt = h.copy()
     h_opt /= np.mean(h_opt)
@@ -102,6 +125,7 @@ def custom_fun_init(array_row, n_counts, fun: callable, rows_idx_opt=None, epsil
 
 def ones_init(array_row):
     return pd.Series(1, index=np.unique(array_row))
+
 
 # def quantile_init_nucl(data: spatialAdata, quant_init, rows_idx_opt = None, cols_idx_opt = None, return_numpy = True, cell_id_label = "cell_id"):
 #     # add row and col to adata
@@ -133,17 +157,22 @@ from functools import wraps
 import pandas as pd
 
 SeriesPair = Tuple[pd.Series, pd.Series]
-def two_stage_nonzero_factors_filter(func: Callable[..., SeriesPair]) -> Callable[..., SeriesPair]:
+
+
+def two_stage_nonzero_factors_filter(
+    func: Callable[..., SeriesPair]
+) -> Callable[..., SeriesPair]:
     """
-    Decorator: 
+    Decorator:
       1) call `func(**kwargs)` to get (row_factors, col_factors)
       2) compute non-zero indices
       3) call `func(data=data, **kwargs, rows_idx_opt=..., cols_idx_opt=...)`
     """
+
     @wraps(func)
     def wrapper(*, data: Any = None, **kwargs: Any) -> SeriesPair:
         # First call (no data, just kwargs)
-        row_factors, col_factors = func(data = data, **kwargs)
+        row_factors, col_factors = func(data=data, **kwargs)
 
         # Compute non-zero indices
         rows_idx_opt = row_factors[row_factors != 0].index
@@ -157,12 +186,19 @@ def two_stage_nonzero_factors_filter(func: Callable[..., SeriesPair]) -> Callabl
             "data": data,
         }
         return func(**final_kwargs)
+
     return wrapper
 
 
-
-
-def quantile_init_from_sdata(data: spatialAdata, quant_init, rows_idx_opt=None, cols_idx_opt=None, epsilon=0, nucl_only=False, cell_id_label="cell_id"):
+def quantile_init_from_sdata(
+    data: spatialAdata,
+    quant_init,
+    rows_idx_opt=None,
+    cols_idx_opt=None,
+    epsilon=0,
+    nucl_only=False,
+    cell_id_label="cell_id",
+):
     """
     Adapter function to format input from a spatialAdata object for quantile_init.
 
@@ -201,7 +237,7 @@ def quantile_init_from_sdata(data: spatialAdata, quant_init, rows_idx_opt=None, 
         rows_idx_opt=rows_idx_opt,
         epsilon=epsilon,
         nucl_selector=nucl_selector,
-        nucl_only=nucl_only
+        nucl_only=nucl_only,
     )
 
     col_factors = quantile_init(
@@ -211,14 +247,25 @@ def quantile_init_from_sdata(data: spatialAdata, quant_init, rows_idx_opt=None, 
         rows_idx_opt=cols_idx_opt,
         epsilon=epsilon,
         nucl_selector=nucl_selector,
-        nucl_only=nucl_only
+        nucl_only=nucl_only,
     )
     return row_factors, col_factors
 
-quantile_init_from_sdata_wo_zeros = two_stage_nonzero_factors_filter(quantile_init_from_sdata)
+
+quantile_init_from_sdata_wo_zeros = two_stage_nonzero_factors_filter(
+    quantile_init_from_sdata
+)
 
 
-def init_from_sdata_with_fun(data: spatialAdata, fun: callable, rows_idx_opt=None, cols_idx_opt=None, epsilon=0, nucl_only=False, cell_id_label="cell_id"):
+def init_from_sdata_with_fun(
+    data: spatialAdata,
+    fun: callable,
+    rows_idx_opt=None,
+    cols_idx_opt=None,
+    epsilon=0,
+    nucl_only=False,
+    cell_id_label="cell_id",
+):
     """
     Adapter function to format input from a spatialAdata object for quantile_init.
 
@@ -253,21 +300,21 @@ def init_from_sdata_with_fun(data: spatialAdata, fun: callable, rows_idx_opt=Non
     row_factors = custom_fun_init(
         array_row=array_row,
         n_counts=n_counts,
-        fun = fun,
+        fun=fun,
         rows_idx_opt=rows_idx_opt,
         epsilon=epsilon,
         nucl_selector=nucl_selector,
-        nucl_only=nucl_only
+        nucl_only=nucl_only,
     )
 
     col_factors = custom_fun_init(
         array_row=array_cols,
         n_counts=n_counts,
-        fun = fun,
+        fun=fun,
         rows_idx_opt=cols_idx_opt,
         epsilon=epsilon,
         nucl_selector=nucl_selector,
-        nucl_only=nucl_only
+        nucl_only=nucl_only,
     )
     return row_factors, col_factors
 
@@ -282,14 +329,22 @@ def ones_init_from_sdata(data: spatialAdata):
 
     return ones_init(array_row), ones_init(array_cols)
 
-def ratio_init_from_sdata(data: spatialAdata, rows_idx_opt=None, cols_idx_opt=None, epsilon=0, cell_id_label="cell_id", quantile = 0.5, min_cell_bin_count = 10):
 
+def ratio_init_from_sdata(
+    data: spatialAdata,
+    rows_idx_opt=None,
+    cols_idx_opt=None,
+    epsilon=0,
+    cell_id_label="cell_id",
+    quantile=0.5,
+    min_cell_bin_count=10,
+):
     data.n_counts
     data.add_array_coords_to_obs()
     data_obs = data.obs.copy()
 
     nucl_indices = data.nucl_indices(cell_id_label)
-    cell_median = data_obs.groupby(cell_id_label, observed = True)["n_counts"].median()
+    cell_median = data_obs.groupby(cell_id_label, observed=True)["n_counts"].median()
     cell_counts = data_obs.groupby(cell_id_label, observed=True)["n_counts"].count()
 
     cell_median.loc[cell_counts < min_cell_bin_count] = np.nan
@@ -298,23 +353,32 @@ def ratio_init_from_sdata(data: spatialAdata, rows_idx_opt=None, cols_idx_opt=No
     data_obs["ratio"] = data_obs.eval("n_counts/cell_median")
 
     results_dict = {}
-    for factor_name, lane_name, idx_opt in [("h","row", rows_idx_opt), ("w","col", cols_idx_opt)]:
-
-        factor = data_obs.loc[nucl_indices].groupby(f"array_{lane_name}")["ratio"].quantile(q=quantile)
+    for factor_name, lane_name, idx_opt in [
+        ("h", "row", rows_idx_opt),
+        ("w", "col", cols_idx_opt),
+    ]:
+        factor = (
+            data_obs.loc[nucl_indices]
+            .groupby(f"array_{lane_name}")["ratio"]
+            .quantile(q=quantile)
+        )
 
         if idx_opt is not None:
             # if some rows_idx are missing, fill them with ones (this can happen for example if we do quantiles_nucl init and rows_idx_opt contain rows wo any nucl)
-            factor_opt = factor.get(idx_opt, default = 1.0)
+            factor_opt = factor.get(idx_opt, default=1.0)
             # h_opt = h[rows_idx_opt].copy()
         else:
             factor_opt = factor.copy()
         factor_opt /= np.mean(factor_opt)
         factor[:] = 1  # Set all factors to 1
         factor.update(factor_opt)  # Update only the selected indices
-        factor = factor.reindex(data_obs[f"array_{lane_name}"].unique()).fillna(1)  # Reindex on original data
+        factor = factor.reindex(data_obs[f"array_{lane_name}"].unique()).fillna(
+            1
+        )  # Reindex on original data
         factor = factor.clip(lower=epsilon)
         results_dict[factor_name] = factor
 
     return results_dict["h"], results_dict["w"]
+
 
 ratio_init_from_sdata_wo_zeros = two_stage_nonzero_factors_filter(ratio_init_from_sdata)

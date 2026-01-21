@@ -1,6 +1,7 @@
 import numpy as np
 from skimage.draw._random_shapes import warn, SHAPE_GENERATORS, SHAPE_CHOICES
 
+
 def random_shapes(
     image_shape,
     max_shapes,
@@ -10,18 +11,18 @@ def random_shapes(
     shape=None,
     allow_overlap=False,
     num_trials=100,
-    rng=None
+    rng=None,
 ):
     # Very much inspired from skimage.draw.random_shapes, but instead of assigning random color, do a clear label !
-    
+
     if min_size > image_shape[0] or min_size > image_shape[1]:
-        raise ValueError('Minimum dimension must be less than ncols and nrows')
+        raise ValueError("Minimum dimension must be less than ncols and nrows")
     max_size = max_size or max(image_shape[0], image_shape[1])
 
     rng = np.random.default_rng(rng)
     user_shape = shape
     image_shape = (image_shape[0], image_shape[1])
-    image = np.full(image_shape, -1, dtype=np.int64) #-1 means unassigned
+    image = np.full(image_shape, -1, dtype=np.int64)  # -1 means unassigned
     filled = np.zeros(image_shape, dtype=bool)
     labels = []
 
@@ -52,8 +53,8 @@ def random_shapes(
                 break
         else:
             warn(
-                'Could not fit any shapes to image, '
-                'consider reducing the minimum dimension'
+                "Could not fit any shapes to image, "
+                "consider reducing the minimum dimension"
             )
 
     return image, labels

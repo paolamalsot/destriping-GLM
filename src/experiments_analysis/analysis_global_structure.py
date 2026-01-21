@@ -1,9 +1,17 @@
-from src.experiments_analysis.summary_structure_preservation import difference_between_smoothed_curves, make_plots_global_structure, plots_striping_intensity_statistics, save_n_counts_matrices, striping_intensity_cyto_statistics, striping_intensity_statistics
+from src.experiments_analysis.summary_structure_preservation import (
+    difference_between_smoothed_curves,
+    make_plots_global_structure,
+    plots_striping_intensity_statistics,
+    save_n_counts_matrices,
+    striping_intensity_cyto_statistics,
+    striping_intensity_statistics,
+)
 import numpy as np
 import pandas as pd
 
 
 from pathlib import Path as P
+
 color_dict_default = {
     "fit theta iter": "khaki",
     "original": "yellow",
@@ -12,11 +20,11 @@ color_dict_default = {
     "ratio_init": "blue",
 }
 marker_dict_default = {
-        "cyto_destripe_dividing_factors_nucl_destripe_dividing_factors": "o",
-        "cyto_destripe_dividing_factors_nucl_destripe_dividing_factors_qm_tot_counts": "x",
-        "destripe_dividing_factors": "o",
-        "": "o",
-        "destripe_dividing_factors_qm_tot_counts": "x"
+    "cyto_destripe_dividing_factors_nucl_destripe_dividing_factors": "o",
+    "cyto_destripe_dividing_factors_nucl_destripe_dividing_factors_qm_tot_counts": "x",
+    "destripe_dividing_factors": "o",
+    "": "o",
+    "destripe_dividing_factors_qm_tot_counts": "x",
 }
 
 
@@ -38,12 +46,11 @@ def analysis_global_structure(
     if color_dict is None:
         color_dict = color_dict_default
 
-    df_results["destriping_method"] = df_results["destriping_method"].replace(np.nan, "")
+    df_results["destriping_method"] = df_results["destriping_method"].replace(
+        np.nan, ""
+    )
 
-    index_oi_dict = {
-        row["name"]: index
-        for index, row in df_results.iterrows()
-    }
+    index_oi_dict = {row["name"]: index for index, row in df_results.iterrows()}
 
     matrices_output_folder = P(output_folder) / "destriping_matrices"
     matrices_output_folder.mkdir(parents=True, exist_ok=True)
@@ -56,8 +63,7 @@ def analysis_global_structure(
     if to_plot_global_structure is None:
         to_plot_global_structure = df_results["name"].tolist()
 
-    if len(to_plot_global_structure)>0:
-
+    if len(to_plot_global_structure) > 0:
         style_dict = {
             row["name"]: {
                 "color": color_dict[row["fitting_method"]],
@@ -83,13 +89,22 @@ def analysis_global_structure(
         refs_global_structure = ["original"]
 
     difference_between_smoothed_curves(
-        df_input, comp_keys, refs_global_structure, global_structure_output_folder, cosine_dist=True
+        df_input,
+        comp_keys,
+        refs_global_structure,
+        global_structure_output_folder,
+        cosine_dist=True,
     )
 
     striping_intensity_output_folder = P(output_folder) / "striping_intensity"
     cyto_striping_intensity_output_folder = P(output_folder) / "cyto_striping_intensity"
 
-    striping_intensity_statistics(df_input, striping_intensity_output_folder, df_results["dataset_path"].iloc[0], normalized = True)
+    striping_intensity_statistics(
+        df_input,
+        striping_intensity_output_folder,
+        df_results["dataset_path"].iloc[0],
+        normalized=True,
+    )
     df_striping_intensity = pd.read_csv(
         striping_intensity_output_folder / "striping_intensity_statistics.csv"
     )
@@ -99,7 +114,7 @@ def analysis_global_structure(
         cyto_striping_intensity_output_folder,
         df_results["dataset_path"].iloc[0],
         df_results["cell_id_label"].iloc[0],
-        normalized=True
+        normalized=True,
     )
 
     df_cyto_striping_intensity = pd.read_csv(

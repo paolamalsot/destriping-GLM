@@ -6,9 +6,13 @@ import pickle
 import pandas as pd
 from pathlib import Path as P
 from src.experiments_analysis.parse_hydra_output_dirs import (
-    get_status_dict, add_poisson_sol_path, get_time_dict, parse_hydra_folder
+    get_status_dict,
+    add_poisson_sol_path,
+    get_time_dict,
+    parse_hydra_folder,
 )
 import os
+
 
 def _normalise_runs_mapping(runs: Mapping[str, str | Path]) -> dict[str, Path]:
     """
@@ -60,16 +64,17 @@ def calculate_glm_specs(run_series):
         "glm": glm,
         "alpha": alpha,
         "theta": theta,
-        "n_iter": n_iter
+        "n_iter": n_iter,
     }
     return record
+
 
 def extract_run_supp(run_series):
     dataset_path = run_series["config"]["dataset"]["path_data"]
     cell_id_label = run_series["config"]["dataset"]["cell_id_label"]
     run_dir = P(run_series["run_dir"])
     poisson_sol_path = run_dir / "sol"
-    if not(os.path.exists(poisson_sol_path)):
+    if not (os.path.exists(poisson_sol_path)):
         poisson_sol_path = None
 
     status_dict_path = run_dir / "status.json"
@@ -80,7 +85,7 @@ def extract_run_supp(run_series):
     else:
         time_dict = {}
 
-    if (os.path.exists(status_dict_path)):
+    if os.path.exists(status_dict_path):
         status_dict = _load_json(status_dict_path)
     else:
         status_dict = {}
@@ -93,6 +98,7 @@ def extract_run_supp(run_series):
         "status_dict": status_dict,
     }
     return record
+
 
 def parse_run(name: str, run_dir: Path) -> dict[str, Any]:
     """
@@ -108,23 +114,23 @@ def parse_run(name: str, run_dir: Path) -> dict[str, Any]:
     Record will contain: overrides, config, run_dir, dataset_path, cell_id_label, poisson_sol_path, time_dict, status_dict
     If Glum run, also: glm_path, dist, dist_params, glm, alpha, theta, n_iter
     """
-    run_df = parse_hydra_folder(str(run_dir)) #overrides, config, run_dir
-    run_df["fitting_args"] = run_df.config.apply(lambda x: x["model_args"] if "model_args" in x.keys() else {})
+    run_df = parse_hydra_folder(str(run_dir))  # overrides, config, run_dir
+    run_df["fitting_args"] = run_df.config.apply(
+        lambda x: x["model_args"] if "model_args" in x.keys() else {}
+    )
     df_time_dict = run_df.apply(get_time_dict, axis=1)  # len(df) =400
-    df_status_dict = run_df.apply(
-        get_status_dict, axis=1
-    )
-    run_df = run_df.merge(
-        df_time_dict, how="left", left_index=True, right_index=True
-    )
-    run_df = run_df.merge(
-        df_status_dict, how="left", left_index=True, right_index=True
-    )
+    df_status_dict = run_df.apply(get_status_dict, axis=1)
+    run_df = run_df.merge(df_time_dict, how="left", left_index=True, right_index=True)
+    run_df = run_df.merge(df_status_dict, how="left", left_index=True, right_index=True)
     assert len(run_df) == 1, "df is longer"
     run_series = run_df.iloc[0]
-    run_record = extract_run_supp(run_series) #"dataset_path", "cell_id_label", "poisson_sol_path", "time_dict", "status_dict": status_dict,
+    run_record = extract_run_supp(
+        run_series
+    )  # "dataset_path", "cell_id_label", "poisson_sol_path", "time_dict", "status_dict": status_dict,
     if is_glm_run(run_series["run_dir"]):
-        supp = calculate_glm_specs(run_series) #"glm_path", "dist", "dist_params", "glm", "alpha", "theta", "n_iter"
+        supp = calculate_glm_specs(
+            run_series
+        )  # "glm_path", "dist", "dist_params", "glm", "alpha", "theta", "n_iter"
     else:
         supp = {}
     return {**run_record, **run_series.to_dict(), **supp, "name": name}

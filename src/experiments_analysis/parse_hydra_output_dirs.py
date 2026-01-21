@@ -8,7 +8,9 @@ import json
 
 def read_hydra_overrides(overrides_path):
     with open(overrides_path, "r") as f:
-        overrides = [line.lstrip('- ').strip() for line in f.readlines()]  # Remove leading '-' and whitespace
+        overrides = [
+            line.lstrip("- ").strip() for line in f.readlines()
+        ]  # Remove leading '-' and whitespace
         dict_ = OmegaConf.from_dotlist(overrides)
     return dict_
 
@@ -27,23 +29,18 @@ def get_hydra_config(folder):
     return config
 
 
-
 def parse_hydra_sweep_subfolder(run_dir):
     dict_overrides = get_hydra_overrides(run_dir)
 
     config = get_hydra_config(run_dir)
 
-    return {
-            "overrides": dict_overrides,
-            "config": config,
-            "run_dir": run_dir
-        }
+    return {"overrides": dict_overrides, "config": config, "run_dir": run_dir}
 
 
 def parse_hydra_sweep_folder(sweep_folder):
     data = []
     for subdir in os.listdir(sweep_folder):
-        if not(path.isdir(path.join(sweep_folder, subdir))):
+        if not (path.isdir(path.join(sweep_folder, subdir))):
             continue
 
         if subdir == ".submitit":
@@ -51,8 +48,7 @@ def parse_hydra_sweep_folder(sweep_folder):
 
         run_dir = os.path.join(sweep_folder, subdir)
         dict_ = parse_hydra_sweep_subfolder(run_dir)
-        dict_supp = {"sweep_folder": sweep_folder,
-                     "subdir": subdir}
+        dict_supp = {"sweep_folder": sweep_folder, "subdir": subdir}
         dict_ = {**dict_, **dict_supp}
         data.append(dict_)
 
