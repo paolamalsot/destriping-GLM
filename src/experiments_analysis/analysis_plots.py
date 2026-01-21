@@ -196,6 +196,7 @@ def striping_intensity_quantification_region_barplot(
     model_name_replacement_dict,
     cyto_select,
     axes=None,
+    **kwargs
 ):
     df = striping_intensity_region_df(
         output_dir, region, to_plot, model_name_replacement_dict
@@ -214,6 +215,7 @@ def striping_intensity_quantification_region_barplot(
         hue="name",
         palette=color_dict,
         ax=axes,
+        **kwargs
     )
 
     ax.set_xlabel("")
