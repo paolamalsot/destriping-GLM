@@ -1,0 +1,3 @@
+canonical_run: "results/benchmark_destriping_model/zebrafish_head/glum_benchmark_v3/v3/2026-01-10/22-54-27/0__+dataset=zebrafish_head"
+sol_dir:       "results/benchmark_destriping_model/zebrafish_head/glum_benchmark_v3/v3/2026-01-10/22-54-27/0__+dataset=zebrafish_head/sol"
+dist_pkl:      "results/benchmark_destriping_model/zebrafish_head/glum_benchmark_v3/v3/2026-01-10/22-54-27/0__+dataset=zebrafish_head/dist.pkl"

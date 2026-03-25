@@ -46,13 +46,14 @@ https://github.com/Quantco/glum
 ### Synthetic data (known ground truth)
 - Improved stripe-factor estimation accuracy.
 - Lower error in corrected counts compared to `bin2cell` and `bin2cell`-derived baselines.
+- More accurate cell-typing.
 
 ### Public VisiumHD slides
 
 On 4 datasets (mouse brain, mouse embryo, zebrafish head and human lymph node):
 - Consistently lowers striping intensity.
 - Better preserves biological structure present in global/large-scale count patterns.
-- Avoids artifacts (e.g., macro-stripes/edge effects) observed with sequential quantile normalization.
+- Avoids artifacts (e.g., macro-stripes/edge effects/reversed DGE effects) observed with sequential quantile normalization.
 
 ---
 
@@ -134,19 +135,71 @@ Remaining steps (benchmarking + analysis) mirror the real-data workflow.
 
 ---
 
+### III. Segmentation sensitivity analysis
+
+Tests how robust destriping is when the input segmentation is perturbed. Three perturbation types are applied to two datasets (human lymph node and simulated data):
+
+- **Subsampling** — randomly remove a fraction of cells
+- **Splitting** — split cells along their longest axis (simulates over-segmentation)
+- **Merging** — fuse neighbouring cells (simulates under-segmentation)
+
+Each experiment follows a two-step workflow, repeated for 3 random seeds (42, 64, 754):
+
+1. **Perturb segmentation** — create modified label files at various perturbation levels
+2. **Fit destriping** — run the GLM on each perturbed dataset
+
+Configs: `experiments/hydra_config/segmentation_sensitivity/`
+Launchers: `experiments/launchers/segmentation_sensitivity/`
+Analysis notebooks: `notebooks/segmentation_analysis/sensitivity_analysis_*.ipynb`
+Benchmark output paths: `experiments/benchmark_output_files/sensitivity_analysis/`
+
+---
+
+### IV. Downstream tasks
+
+Evaluates whether destriping improves downstream biological analyses.
+
+#### Cell typing (mouse brain)
+
+Compares supervised classification and unsupervised clustering on destriped vs raw cell-level expression aggregated from bin counts:
+
+- `notebooks/downstream_taks/mouse_brain_cell_typing/cell_typing_synthetic.ipynb` — on simulated data with known ground truth
+- `notebooks/downstream_taks/mouse_brain_cell_typing/cell_typing_mouse_brain.ipynb` — on real mouse brain data
+
+#### Differential gene expression (zebrafish head)
+
+Compares DGE results between destriped and raw data:
+
+- `notebooks/downstream_taks/zebrafish_dge.ipynb`
+- `notebooks/downstream_taks/mouse_brain_cell_typing/zebrafish_dge.ipynb`
+
+---
+
 ## Repository structure
 
 ### Source code
-- `src/destriping/GLUM/glum_wrapper.py`  
+- `src/destriping/GLUM/glum_wrapper.py`
   `GlumWrapper`: main class fitting the Negative Binomial model to spatial transcriptomics data
-- `src/destriping/GLUM/`  
+- `src/destriping/GLUM/`
   iterative fitting + cross-validation logic
-- `src/spatialAdata/spatialAdata.py`  
+- `src/destriping/simulation/`
+  synthetic data generation (cell masks, stripe factors, Poisson/NB counts)
+- `src/spatialAdata/spatialAdata.py`
   container class for spatial transcriptomics data
-- `src/experiments_analysis/`  
-  result processing + plotting utilities
-- `notebooks/`  
-  analyses and figures for the publication
+- `src/segmentation_sensitivity/`
+  utilities for perturbing segmentations (subsampling, splitting, merging)
+- `src/experiments_analysis/`
+  result processing + plotting utilities, including:
+  - `sensitivity_analysis_pipeline.py` — end-to-end analysis for segmentation sensitivity
+  - `cell_typing_pipeline.py` — supervised/unsupervised cell typing comparison
+  - `memory_requirements/peak_memory.py` — SLURM peak memory extraction
+
+### Notebooks
+- `notebooks/glum_analysis_*.ipynb` — main benchmark analysis & figures
+- `notebooks/panel_*.ipynb` — publication panel figures
+- `notebooks/segmentation_analysis/sensitivity_analysis_*.ipynb` — segmentation sensitivity analysis
+- `notebooks/computational_requirements/` — memory and time profiling
+- `notebooks/downstream_taks/` — cell typing and differential gene expression
 
 ### Experiments
 - `experiments/hydra_config/`  

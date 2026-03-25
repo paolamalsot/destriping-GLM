@@ -1,0 +1,16 @@
+defaults:
+  - ../../hydra/output_structure/default@_here_
+  - ../datasets/human_lymph_node@dataset
+  - _self_
+
+parsing_fun: experiments.src.segmentation_sensitivity.merge
+
+hydra:
+  sweeper:
+    params:
+      seed: 42,64,754
+
+seed: 42
+ps: [0.01, 0.1, 0.25, 0.5, 0.8, 0.9, 1.0]
+
+experiment_output_dir: results/segmentation_sensitivity/human_lymph_node/merged_seed_${.seed}

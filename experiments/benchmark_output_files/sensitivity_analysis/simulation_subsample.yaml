@@ -1,0 +1,26 @@
+# Subsample sensitivity (simulation): all seeds in one config
+seeds:
+  42:
+    runs:
+      pct_80: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping/2026-03-14/12-57-24/0__percentage=0.8"
+      pct_50: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping/2026-03-14/12-57-24/1__percentage=0.5"
+      pct_25: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping/2026-03-14/12-57-24/2__percentage=0.25"
+      pct_10: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping/2026-03-14/12-57-24/3__percentage=0.1"
+      pct_1: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping/2026-03-14/12-57-24/4__percentage=0.01"
+  64:
+    runs:
+      pct_80: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_subsample_seed_64/2026-03-14/23-56-57/0__percentage=0.8"
+      pct_50: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_subsample_seed_64/2026-03-14/23-56-57/1__percentage=0.5"
+      pct_25: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_subsample_seed_64/2026-03-14/23-56-57/2__percentage=0.25"
+      pct_10: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_subsample_seed_64/2026-03-14/23-56-57/3__percentage=0.1"
+      pct_1: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_subsample_seed_64/2026-03-14/23-56-57/4__percentage=0.01"
+  754:
+    runs:
+      pct_80: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_subsample_seed_754/2026-03-14/23-59-05/0__percentage=0.8"
+      pct_50: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_subsample_seed_754/2026-03-14/23-59-05/1__percentage=0.5"
+      pct_25: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_subsample_seed_754/2026-03-14/23-59-05/2__percentage=0.25"
+      pct_10: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_subsample_seed_754/2026-03-14/23-59-05/3__percentage=0.1"
+      pct_1: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_subsample_seed_754/2026-03-14/23-59-05/4__percentage=0.01"
+
+output_dir: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/analysis_subsample"
+figures_output_dir: "results/publication_oup_vrepro/segmentation_sensitivity/figures/simulation/subsample"

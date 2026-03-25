@@ -12,4 +12,4 @@ hydra:
   launcher:
     mem_per_cpu: 10G
   searchpath:
-    - file://experiments/hydra_config/destriping_model/mouse_brain_v2
+    - file://experiments/hydra_config/destriping_model/mouse_brain

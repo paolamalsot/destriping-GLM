@@ -14,6 +14,7 @@ model_name_replacement_dict = {
     "ours__none_init": "ours_N.I",
     "ours__P2_identity": "ours_P2.I",
     "GT_nbinom_sol": "GT",
+    "collapse_label": "ours (collapse label)",
 }
 
 color_dict = {
@@ -23,10 +24,12 @@ color_dict = {
     "bin-level norm.": colorblind_palette[1],
     "original": colorblind_palette[0],
     "ours": colorblind_palette[3],
+    "ours (collapse label)": colorblind_palette[5],
     "ours_N.I": colorblind_palette[3],
     "ours_P2.I": colorblind_palette[3],
     "GT": colorblind_palette[4],
     "MRSE": colorblind_palette[2],
     "b2c-sym-med": colorblind_palette[5],
     "b2c-sym-med-nucl": colorblind_palette[5],
+    "b2c-sym-c_mean": colorblind_palette[2],
 }

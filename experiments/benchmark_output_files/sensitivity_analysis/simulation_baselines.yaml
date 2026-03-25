@@ -1,0 +1,13 @@
+# Shared baselines for simulation sensitivity analyses (seed_546)
+runs_baselines:
+  ours: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/glum_benchmark_v3/v3/2026-03-14/17-06-12/0__dataset=simulation_4_with_struct_nb_weibul_2_seed_546"
+  collapse_label: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_collapse_label/2026-03-17/11-35-01"
+
+dividing_by_ratio_baselines:
+  original: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/dividing_by_factors/2026-03-14/17-06-02/1__factors=ones"
+  dividing_99_quantile: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/dividing_by_factors/2026-03-14/17-06-02/0__factors=quantiles"
+
+not_factor_based_baseline:
+  2SN: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/b2c_destriping/2026-03-14/17-05-42/0__dataset=simulation_4_with_struct_nb_weibul_2_seed_546"
+
+supp_baselines_dir: "results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/additional_baselines/2026-03-14/17-05-47/0__dataset=simulation_4_with_struct_nb_weibul_2_seed_546"

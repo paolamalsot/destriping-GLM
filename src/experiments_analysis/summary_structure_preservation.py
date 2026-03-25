@@ -135,12 +135,20 @@ def get_index_oi_dict(df, distance_colname=None):
     return base_dict
 
 
-def save_matrix_row(row, original_data, save_dir):
+def save_matrix_row(row, original_data, save_dir, fill_nans_from_original=False):
     i_row = row.name
     destriped_data_counts = get_destriped_tot_counts(row, take_n_counts_adjusted=True)
     intersect_indices = original_data.index.intersection(destriped_data_counts.index)
     array_coords_ = original_data[intersect_indices].get_unscaled_coordinates("array")
     destriped_data_counts_ = destriped_data_counts.loc[intersect_indices]
+    if fill_nans_from_original:
+        original_n_counts = original_data.obs.loc[intersect_indices, "n_counts"]
+        inf_indices = np.isinf(destriped_data_counts_.values)
+        nan_indices = np.isnan(destriped_data_counts_.values)
+        nan_inf_indices = inf_indices | nan_indices 
+        destriped_data_counts_.loc[nan_inf_indices] = original_n_counts.loc[
+            nan_inf_indices
+        ]
     matrix = img_2D_from_vals(array_coords_, destriped_data_counts_)
     matrix_path = save_dir / f"matrix_{i_row}.npy"
     np.save(matrix_path, matrix)
@@ -234,10 +242,10 @@ def rotate_labels(g):
 
 
 def difference_between_smoothed_curves(
-    df, comp_keys, reference_keys, save_dir, k=100, cosine_dist=False
+    df, comp_keys, reference_keys, save_dir, k=100
 ):
-    # calculates the L2 difference between the comp_keys and the references_keys
-    # the curve can be for example curve of 99th quantile or sum etc...
+    # calculates both cosine and normalized euclidean differences
+    # between the comp_keys and the references_keys
 
     results = []
 
@@ -262,31 +270,40 @@ def difference_between_smoothed_curves(
                             df, index_comp, operation_name, k, axis
                         )
                     smoothed_line_comp = smoothed_line_comp[~nan_in_ref]
-                    # smoothed_line_comp[np.isnan(smoothed_line_comp)] = smoothed_line_original[np.isnan(smoothed_line_comp)]
-                    if cosine_dist:
-                        difference = cosine(smoothed_line_ref, smoothed_line_comp)
-                    else:
-                        difference = np.linalg.norm(
-                            smoothed_line_ref - smoothed_line_comp
-                        )
-                    result_dict = {
+                    base_dict = {
                         "axis": axis,
                         "lane_name": lane_name,
                         "operation_name": operation_name,
                         "ref": ref,
                         "comp": comp,
-                        "difference": difference,
                     }
-                    results.append(result_dict)
+                    results.append({
+                        **base_dict,
+                        "metric": "cosine",
+                        "difference": cosine(smoothed_line_ref, smoothed_line_comp),
+                    })
+                    results.append(
+                        {
+                            **base_dict,
+                            "metric": "euclidean",
+                            "difference": np.linalg.norm(
+                                smoothed_line_ref - smoothed_line_comp
+                            )
+                            / (
+                                np.sqrt(len(smoothed_line_ref))
+                                * np.mean(smoothed_line_ref)
+                            ),
+                        }
+                    )
     results_df = pd.DataFrame(results)
 
     # calculate the sum over the axes, and set for a new axis column named "global"
-    new = results_df.groupby(["operation_name", "ref", "comp"]).sum().reset_index()
+    new = results_df.groupby(["operation_name", "ref", "comp", "metric"]).sum().reset_index()
     new["axis"] = "global"
     results_df = pd.concat([results_df, new], ignore_index=True)
     results_df.to_csv(save_dir / "statistics_global_structure.csv", index=False)
 
-    for operation_name, df in results_df.groupby("operation_name"):
+    for (operation_name, metric), df_group in results_df.groupby(["operation_name", "metric"]):
         g = sns.catplot(
             kind="strip",
             x="comp",
@@ -294,14 +311,14 @@ def difference_between_smoothed_curves(
             row="ref",
             col="axis",
             hue="comp",
-            data=df,
+            data=df_group,
         )
         for ax in g.axes.flat:
             for label in ax.get_xticklabels():
                 label.set_rotation(90)
         plt.tight_layout()
         plt.savefig(
-            save_dir / f"statistics_global_structure_{operation_name}.pdf",
+            save_dir / f"statistics_global_structure_{operation_name}_{metric}.pdf",
             bbox_inches="tight",
         )
         plt.close()
@@ -355,10 +372,14 @@ def striping_intensity_cyto(matrix, cyto_select, axis, normalized=False):
     sums = np.nansum(diffs_cyto_only, other_axis, keepdims=True)
     I = (sums**2).sum() ** 0.5
     if normalized:
-        N = np.sqrt(matrix.shape[axis] - 1) * np.nanmean(matrix)
+        N = np.sqrt(matrix.shape[axis] - 1) * np.nanmean(matrix[cyto_select])
     else:
         N = np.sqrt(matrix.shape[axis] - 1)
-    return I / N
+    
+    if (I == 0) and (N == 0):
+        return 0
+    else:
+        return I / N
 
 
 def striping_intensity_all(matrix, matrix_data_select, normalized):
@@ -424,6 +445,7 @@ def striping_intensity_cyto_statistics(
 def plots_striping_intensity_statistics(df_striping_intensity, output_folder):
     # do a catplot with every col a striping intensity column, compare the different methods (names in the "name" column)
     output_folder.mkdir(parents=True, exist_ok=True)
+
     df = pd.wide_to_long(
         df_striping_intensity,
         stubnames=["striping_intensity"],
@@ -432,13 +454,19 @@ def plots_striping_intensity_statistics(df_striping_intensity, output_folder):
         sep="_",
         suffix="\\w+",
     ).reset_index()
+
+    if (df["striping_intensity"] == 0).all():
+        log_scale = False
+    else:
+        log_scale = True
+
     g = sns.catplot(
         col="lane",
         x="name",
         y="striping_intensity",
         kind="strip",
         data=df,
-        log_scale=True,
+        log_scale=log_scale,
     )
     g.set_xticklabels(rotation=90)
     plt.tight_layout()
@@ -446,7 +474,7 @@ def plots_striping_intensity_statistics(df_striping_intensity, output_folder):
     plt.close()
 
 
-def save_n_counts_matrices(df_results, index_oi_dict, output_folder):
+def save_n_counts_matrices(df_results, index_oi_dict, output_folder, fill_nans_from_original=False):
     index_oi_series = pd.Series(index_oi_dict)
     index_oi_series.to_csv(output_folder / "index_oi.csv")
     # download original data
@@ -459,7 +487,7 @@ def save_n_counts_matrices(df_results, index_oi_dict, output_folder):
 
     for name, index in index_oi_series.items():
         print(name, index)
-        save_matrix_row(df_results.loc[index], original_data, output_folder)
+        save_matrix_row(df_results.loc[index], original_data, output_folder, fill_nans_from_original=fill_nans_from_original)
         new_df_list.append(
             {
                 "name": name,

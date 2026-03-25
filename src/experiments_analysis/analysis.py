@@ -235,13 +235,11 @@ def summarize_destriped_data_sols_from_runs(
 
     # check presence of NaN or inf in destriped data
     df_final = check_nan_inf_destriped_data(df_final)
-    if (
-        df_final["nan_inf_destriped_data__n_counts_adjusted=True"].any()
-        or df_final["nan_inf_destriped_data__n_counts_adjusted=True"].any()
-    ):
-        list_nan = df_final.query(
-            "nan_inf_destriped_data__n_counts_adjusted=True or nan_inf_destriped_data__n_counts_adjusted=True"
-        )["name"].tolist()
+    col_true = "nan_inf_destriped_data__n_counts_adjusted=True"
+    col_false = "nan_inf_destriped_data__n_counts_adjusted=False"
+    if df_final[col_true].any() or df_final[col_false].any():
+        mask = df_final[col_true] | df_final[col_false]
+        list_nan = df_final.loc[mask, "name"].tolist()
         warn(f"NaN inf in the following destriped data: {list_nan}")
 
     return df_final
@@ -265,6 +263,7 @@ def get_processed_data_dicts_lightweight(dir_):
 
 
 def filter_summary_df_qm(destriped_summary_df):
+    # Choose the destriping method with the name containing qm (and not sqm) by priority
     def select_method(destripe_method_df):
         for method in destripe_method_df["destriping_method"].tolist():
             if pd.isna(method):

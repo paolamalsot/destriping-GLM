@@ -16,6 +16,59 @@ from src.utilities.custom_imshow import custom_imshow
 from src.utilities.matplotlib_utils import pad_axes_in_points
 
 
+def barplot_distance_to_gt(
+    metrics_df,
+    methods,
+    color_dict,
+    name_metric,
+    outpath=None,
+    ax=None,
+    **kwargs
+):
+    df = metrics_df.copy()
+    df = df[df["name"].isin(methods)]
+    df["name"] = pd.Categorical(df["name"], categories=methods, ordered=True)
+
+    if ax is None:
+        fig, ax = plt.subplots(1, figsize=(3.4, 2))
+    else:
+        fig = ax.get_figure()
+
+    df_selection = df.loc[~df[name_metric].isna()]
+    df_selection["name"] = df_selection["name"].cat.remove_unused_categories()
+    print(df_selection.name.unique())
+
+    kwargs = {
+        "data": df_selection,
+        "x": "name",
+        "y": name_metric,
+        "hue": "name",
+        "palette": color_dict,
+        "errorbar": "sd",
+        "ax": ax,
+        "log_scale": True,
+        "log": True,
+        "alpha": 1.0,
+        "errcolor": "grey",
+        **kwargs,
+    }
+
+    sns.barplot(
+        **kwargs
+    )
+    ax.set_xlabel("")
+    ax.set_ylabel("")
+    ax.set_title(name_metric)
+    ax.tick_params(axis="x", rotation=30)
+    if not fig.get_constrained_layout():
+        fig.tight_layout()
+    if not (outpath is None):
+        outpath = P(outpath)
+        outpath.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(outpath)
+    return ax
+
+
 def barplots_distance_to_gt(
     metrics_df,
     methods,
@@ -33,6 +86,9 @@ def barplots_distance_to_gt(
         fig, axes = plt.subplots(1, 2, figsize=(3.4 * 2, 2))
     else:
         fig = axes[0].get_figure()
+
+    #
+    # print(df_selection.name.unique())
 
     sns.barplot(
         data=df,
@@ -54,7 +110,7 @@ def barplots_distance_to_gt(
 
     df_selection = df.loc[~df[name_error_in_stripe_factors].isna()]
     df_selection["name"] = df_selection["name"].cat.remove_unused_categories()
-    print(df_selection.name.unique())
+
     sns.barplot(
         data=df_selection,
         x="name",
@@ -242,10 +298,11 @@ def striping_intensity_quantification_region_barplot_all(
             model_name_replacement_dict,
             cyto_select,
         )
+        plt.tight_layout()
 
         plt.savefig(
             P(main_publi_output_folder)
-            / f"{region_name}__violin_striping_quantification_{cyto_select=}.pdf"
+            / f"{region_name}__barplot_striping_quantification_{cyto_select=}.pdf"
         )
         plt.show()
 
@@ -384,6 +441,7 @@ def plot_compromise_striping_intensity_global_structure_alteration(
     markers=None,
     ax=None,
     legend_=True,
+    alpha = 1.0
 ):
     if colors:
         fig_width = 5
@@ -425,6 +483,7 @@ def plot_compromise_striping_intensity_global_structure_alteration(
         style=style,
         markers=markers,
         ax=ax,
+        alpha = alpha
     )
     linear_width_x = (
         comparison_table["striping intensity"]
@@ -486,14 +545,13 @@ def plot_compromise_striping_intensity_global_structure_alteration(
                 va="bottom",  # label orientation
                 fontsize=9,
             )
-
-    if not (colors is None) and legend:
-        plt.legend(loc="center left", bbox_to_anchor=(1.1, 0.5), frameon=True)
-
+    axis.set_ylabel("Glob. Struct. Alt.")
     axis.grid()
-    plt.tight_layout()
+    axis.get_figure().tight_layout()
     pad_axes_in_points(axis, pad_left=5, pad_right=50, pad_bottom=5, pad_top=20)
-    plt.tight_layout()
+    if not (colors is None) and legend:
+        axis.legend(loc="center left", bbox_to_anchor=(1.1, 0.5), frameon=True, title=None)
+    axis.get_figure().tight_layout()
     return axis
 
 
@@ -509,6 +567,8 @@ def compromise_striping_intensity_global_structure_alteration(
     markers=None,
     ax=None,
     colors_legend=True,
+    metric="cosine",
+    alpha = 1.0
 ):
     if cyto:
         print(f"striping intensity in cytoplasm")
@@ -546,10 +606,15 @@ def compromise_striping_intensity_global_structure_alteration(
         distance_to_original_smoothed_path
     )
 
-    distance_to_original_smoothed_table_sel = distance_to_original_smoothed_table.query(
+    base_query = (
         "(lane_name == 'rowscolumns') and "
         "(operation_name == 'sum') and "
         "(ref == 'original')"
+    )
+    if "metric" in distance_to_original_smoothed_table.columns:
+        base_query += f" and (metric == '{metric}')"
+    distance_to_original_smoothed_table_sel = distance_to_original_smoothed_table.query(
+        base_query
     ).set_index("comp")["difference"]
 
     striping_intensity_sel = striping_intensity_table.set_index("name")[
@@ -586,6 +651,7 @@ def compromise_striping_intensity_global_structure_alteration(
         markers=markers,
         ax=ax,
         legend_=colors_legend,
+        alpha = alpha
     )
 
     return axis
@@ -639,6 +705,170 @@ def compromise_striping_intensity_global_structure_alteration_cyto_all(
     return all_figs_axes
 
 
+def _load_compromise_data(cyto, global_dir_path, model_name_replacement_dict, metric="cosine"):
+    """Load striping intensity and global structure alteration tables, apply name replacement.
+
+    Returns a DataFrame with columns: model, striping intensity, global structure alteration.
+    Multiple rows per display name are expected when seed-prefixed runs share a label.
+    """
+    if not cyto:
+        striping_intensity_table_path = (
+            P(global_dir_path)
+            / "striping_intensity"
+            / "striping_intensity_statistics.csv"
+        )
+    else:
+        striping_intensity_table_path = (
+            P(global_dir_path)
+            / "cyto_striping_intensity"
+            / "cyto_striping_intensity_statistics.csv"
+        )
+
+    striping_intensity_table = pd.read_csv(striping_intensity_table_path)
+    distance_to_original_smoothed_path = (
+        P(global_dir_path)
+        / "plots_global_structure"
+        / "statistics_global_structure.csv"
+    )
+    distance_to_original_smoothed_table = pd.read_csv(
+        distance_to_original_smoothed_path
+    )
+
+    base_query = (
+        "(lane_name == 'rowscolumns') and "
+        "(operation_name == 'sum') and "
+        "(ref == 'original')"
+    )
+    if "metric" in distance_to_original_smoothed_table.columns:
+        base_query += f" and (metric == '{metric}')"
+    distance_to_original_smoothed_table_sel = distance_to_original_smoothed_table.query(
+        base_query
+    ).set_index("comp")["difference"]
+
+    striping_intensity_sel = striping_intensity_table.set_index("name")[
+        "striping_intensity_tot"
+    ]
+
+    comparison_table = pd.DataFrame.from_dict(
+        {
+            "striping intensity": striping_intensity_sel,
+            "global structure alteration": distance_to_original_smoothed_table_sel,
+        }
+    ).reset_index(drop=False, names="model")
+
+    comparison_table["model"] = comparison_table["model"].replace(
+        model_name_replacement_dict
+    )
+    return comparison_table
+
+
+def _add_errorbars_to_compromise_plot(
+    axis, comparison_table, to_plot, colors, alpha=0.8
+):
+    """Add mean±std error bars to an existing compromise scatter plot.
+
+    Groups `comparison_table` by display name, computes mean and std,
+    and overlays errorbars for each method in `to_plot`.
+    """
+    grouped = comparison_table.groupby("model", sort=False).agg(
+        x_mean=("striping intensity", "mean"),
+        x_std=("striping intensity", "std"),
+        y_mean=("global structure alteration", "mean"),
+        y_std=("global structure alteration", "std"),
+    )
+    # std is NaN for single-row groups; fill with 0
+    grouped = grouped.fillna(0)
+
+    for name in to_plot:
+        if name not in grouped.index:
+            continue
+        row = grouped.loc[name]
+        ecolor = colors.get(name, "black") if colors else "black"
+        axis.errorbar(
+            row["x_mean"],
+            row["y_mean"],
+            xerr=row["x_std"],
+            yerr=row["y_std"],
+            fmt="none",
+            ecolor=ecolor,
+            elinewidth=1.2,
+            capsize=0,
+            alpha=alpha,
+            zorder=10,
+        )
+
+
+def compromise_striping_intensity_global_structure_alteration_cyto_all_with_errorbars(
+    global_dir_path,
+    output_folder,
+    model_name_replacement_dict,
+    offset_dict=None,
+    to_plot=None,
+    annotation=True,
+    colors=None,
+    alpha=0.8,
+    cyto_all=None,
+    ax = None
+):
+    """Like ``_cyto_all`` but aggregates seed runs as mean±std error bars instead of separate markers."""
+    if cyto_all is None:
+        cyto_all = [True, False]
+    all_figs_axes = []
+    for cyto in cyto_all:
+        if not(output_folder is None):
+            if cyto:
+                print("striping intensity in cytoplasm")
+                path_figure = (
+                    P(output_folder)
+                    / "cyto_striping_intensity-global_structure_alteration.pdf"
+                )
+            else:
+                print("striping intensity in cytoplasm + nucleus")
+                path_figure = (
+                    P(output_folder) / "striping_intensity-global_structure_alteration.pdf"
+                )
+        else: path_figure = None
+
+        comparison_table = _load_compromise_data(
+            cyto, global_dir_path, model_name_replacement_dict
+        )
+
+        # Aggregate to mean per display name for the scatter plot
+        comparison_table_mean = (
+            comparison_table.groupby("model", sort=False)
+            .agg({"striping intensity": "mean", "global structure alteration": "mean"})
+            .reset_index()
+        )
+
+        if to_plot is not None:
+            comparison_table_mean = (
+                comparison_table_mean.set_index("model").loc[to_plot].reset_index()
+            )
+
+        axis = plot_compromise_striping_intensity_global_structure_alteration(
+            comparison_table_mean,
+            offset_dict=offset_dict,
+            colors=colors,
+            annotation=annotation,
+            markers=None,
+            legend_=True,
+            ax = ax
+        )
+
+        # Overlay error bars from the full (non-aggregated) table
+        plot_to_plot = to_plot if to_plot is not None else comparison_table["model"].unique().tolist()
+        _add_errorbars_to_compromise_plot(
+            axis, comparison_table, plot_to_plot, colors, alpha=alpha
+        )
+
+        axis.grid("on")
+        if not(path_figure is None):
+            plt.savefig(path_figure)
+        all_figs_axes.append(axis)
+
+    return all_figs_axes
+
+
 def barplot_global_structure_alteration(
     global_dir_path,
     output_folder=None,
@@ -646,6 +876,7 @@ def barplot_global_structure_alteration(
     to_plot=None,
     colors=None,
     ax=None,
+    metric="cosine",
 ):
     if not (to_plot is None):
         to_plot = [x for x in to_plot if x != "original"]
@@ -659,10 +890,17 @@ def barplot_global_structure_alteration(
         distance_to_original_smoothed_path
     )
 
-    distance_to_original_smoothed_table_sel = distance_to_original_smoothed_table.query(
+    metric_filter = f"(metric == '{metric}')" if "metric" in distance_to_original_smoothed_table.columns else ""
+    base_query = (
         "(lane_name == 'rowscolumns') and "
         "(operation_name == 'sum') and "
         "(ref == 'original')"
+    )
+    if metric_filter:
+        base_query += f" and {metric_filter}"
+
+    distance_to_original_smoothed_table_sel = distance_to_original_smoothed_table.query(
+        base_query
     )
 
     distance_to_original_smoothed_table_sel = (
@@ -695,6 +933,8 @@ def barplot_global_structure_alteration(
         x="model",
         y="global structure alteration",
         hue=hue,
+        order = to_plot,
+        hue_order=to_plot,
         palette=palette,
         ax=ax,
     )
@@ -703,18 +943,21 @@ def barplot_global_structure_alteration(
         .loc[distance_to_original_smoothed_table_sel["global structure alteration"] > 0]
         .min()
     )
-    # e = np.floor(np.log10(np.abs(linear_width_y))).astype(int)
-    # print(e)
-    # linear_width_y = np.power(10.0, e)
     axis.set_yscale("symlog", linthresh=linear_width_y, linscale=0.25)
 
     ax.set_xlabel("")
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
-
+    if metric == "euclidean":
+        ax.set_ylabel("Glob. Struct. Alt. \n (Euclidean)")
+    else:
+        ax.set_ylabel("Glob. Struct. Alt.")
     plt.tight_layout()
     pad_axes_in_points(axis, pad_left=0, pad_right=0, pad_bottom=0, pad_top=20)
     if not (output_folder is None):
-        path_figure = P(output_folder) / "barplot_global_structure_alteration.pdf"
+        if metric == "euclidean":
+            path_figure = P(output_folder) / "barplot_global_structure_alteration_euclidean.pdf"
+        else:
+            path_figure = P(output_folder) / "barplot_global_structure_alteration.pdf"
         plt.savefig(path_figure)
     return axis
 
@@ -769,20 +1012,21 @@ def global_structure_plot(
     for axis, lane_name in zip([1, 0], ["row", "column"]):
         ax = axes[axis]
         for name in to_plot:
-            index = df.query(f"name == '{name}'").index
-            smoothed_lineplot_from_key(
-                df,
-                index,
-                operation_name,
-                k=k,
-                axis=axis,
-                ax=ax,
-                label=name,
-                alpha=0.5,
-                lw=1,
-                color=color_dict[name],
-                ls=linestyle_dict.get(name, "solid"),
-            )
+            indices = df.query(f"name == '{name}'").index
+            for single_idx in indices:
+                smoothed_lineplot_from_key(
+                    df,
+                    pd.Index([single_idx]),
+                    operation_name,
+                    k=k,
+                    axis=axis,
+                    ax=ax,
+                    label=name,
+                    alpha=0.5,
+                    lw=1,
+                    color=color_dict[name],
+                    ls=linestyle_dict.get(name, "solid"),
+                )
             # ax.set_title(lane_name)
             if no_broken_axis:
                 ax.set_xlabel(f"{lane_name} index")
@@ -800,11 +1044,18 @@ def global_structure_plot(
             ref_axis = axes[-1]
 
     handles, labels = ref_axis.get_legend_handles_labels()
+    seen: dict = {}
+    unique_handles, unique_labels = [], []
+    for h, l in zip(handles, labels):
+        if l not in seen:
+            seen[l] = True
+            unique_handles.append(h)
+            unique_labels.append(l)
 
     box = ref_axis.get_position()
     legend = fig.legend(
-        handles,
-        labels,
+        unique_handles,
+        unique_labels,
         loc="upper center",
         bbox_to_anchor=(0.5, 0.0),
         ncol=ncol_legend,
@@ -865,6 +1116,21 @@ def global_structure_plot_all_methods(
         "test_extra_entry",
     ]
 
+    to_plot_barplot = [
+        "original",
+        "b2c",
+        "bin-level norm.",
+        "b2c-sym",
+        "b2c-sym-nucl",
+        "b2c-sym-med",
+        "b2c-sym-med-nucl",
+        "MRSE",
+        "ours",
+        "ours_P2.I",
+        "ours_N.I",
+        "test_extra_entry",
+    ]
+
     linestyle_dict = {
         "b2c-sym-nucl": "dotted",
         "b2c-sym-med-nucl": "dotted",
@@ -907,12 +1173,26 @@ def global_structure_plot_all_methods(
 
     plt.show()
 
+    to_plot_barplot_ = check_which_results_in_to_plot(
+        to_plot_barplot, global_structure_analysis_folder, model_name_replacement_dict
+    )
+
     axis = barplot_global_structure_alteration(
         global_structure_analysis_folder,
         supp_publi_output_folder,
         model_name_replacement_dict,
-        to_plot_,
+        to_plot_barplot_,
         colors=color_dict,
+    )
+    plt.show()
+
+    axis = barplot_global_structure_alteration(
+        global_structure_analysis_folder,
+        supp_publi_output_folder,
+        model_name_replacement_dict,
+        to_plot_barplot_,
+        colors=color_dict,
+        metric="euclidean",
     )
     plt.show()
 

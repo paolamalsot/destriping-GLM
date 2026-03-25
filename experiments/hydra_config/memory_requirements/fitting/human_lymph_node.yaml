@@ -1,0 +1,42 @@
+defaults:
+  - _self_
+  - override hydra/launcher: ../../../../hydra/launcher/cluster_4G
+
+parsing_fun: experiments.src.memory_requirements.fitting_only
+
+experiment_output_dir: results/memory_requirements/fitting/human_lymph_node
+
+df_path: results/memory_requirements/datasets_df/df_human_lymph_node.pkl
+
+model:
+  _target_: src.destriping.GLUM.glum_wrapper.GlumWrapper
+
+model_args:
+  id_label: "cell_id"
+  init_method: "ones"
+  init_method_args:
+    c_mean: true
+  family: "nbinom"
+  family_params:
+    theta: 1.0
+  n_alphas: 10
+  alphas: null
+  P2: "hw_only"
+  cv_split_method: "spatial"
+  freeze_c: false
+  regressorCV: false
+  sklearnCV: true
+  sklearnCV_one_SE_rule: false
+  warm_start_alpha: true
+  fit_theta_iter: true
+  fit_theta_max_iter: 1
+  fit_theta_iter_loc: "out"
+  selection: "random"
+  solver: "lbfgs"
+  max_iter: 1
+
+hydra:
+  job:
+    chdir: true
+  sweep:
+    dir: ${experiment_output_dir}/${now:%Y-%m-%d}/${now:%H-%M-%S}

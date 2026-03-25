@@ -1,0 +1,16 @@
+defaults:
+  - ../../hydra/output_structure/default@_here_
+  - ../datasets/human_lymph_node@dataset
+  - _self_
+
+parsing_fun: experiments.src.segmentation_sensitivity.subsample
+
+hydra:
+  sweeper:
+    params:
+      seed: 42,64,754
+
+seed: 42
+percentages: [0.80, 0.50, 0.25, 0.1, 0.01]
+
+experiment_output_dir: results/segmentation_sensitivity/human_lymph_node/subsampled_data_seed_${.seed}

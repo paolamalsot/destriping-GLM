@@ -10,5 +10,5 @@ hydra:
 #      mem_per_cpu: 10G
   sweeper:
     params:
-#      dataset: simulation_4_with_struct_nb_weibul_2_seed_36,simulation_4_with_struct_nb_weibul_2_seed_546 
-      dataset: simulation_4_with_struct_nb_weibul_2_seed_36 
+      dataset: simulation_4_with_struct_nb_weibul_2_seed_546 
+#      dataset: simulation_4_with_struct_nb_weibul_2_seed_36,simulation_4_with_struct_nb_weibul_2_seed_546

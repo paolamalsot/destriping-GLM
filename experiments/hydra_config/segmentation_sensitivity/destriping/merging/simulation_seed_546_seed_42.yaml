@@ -1,0 +1,25 @@
+defaults:
+  - ../../../hydra/output_structure/default@_here_
+  - ../../datasets/simulation_4_with_struct_nb_weibul_2_seed_546@dataset
+  - ../../../destriping_model/simulation_big_dataset/models/glum/v3@_here_
+  - override hydra/launcher: ../../../../../hydra/launcher/cluster_4G
+  - _self_
+
+parsing_fun: experiments.src.segmentation_sensitivity.destriping_merge
+
+merging_run_dir: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/merged_seed_42/2026-03-19/15-53-29/0__seed=42"
+
+p_merge: 0.01
+
+experiment_output_dir: results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_merge_seed_42
+
+model_args:
+  parallel: false
+
+hydra:
+  launcher:
+    mem_per_cpu: 10G
+    timeout_min: 300
+  sweeper:
+    params:
+      p_merge: 0.01,0.1,0.25,0.5,0.8,1.0

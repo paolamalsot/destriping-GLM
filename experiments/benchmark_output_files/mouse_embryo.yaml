@@ -18,5 +18,5 @@ not_factor_based_baseline:
 supp_baselines_dir: null
 output_dir: "results/benchmark_destriping_model/mouse_embryo/analysis/2025-01-10/22-00-00"
 
-supp_publi_output_folder: "results/publication_oup_v2/mouse_embryo/supp"
-main_publi_output_folder: "results/publication_oup_v2/mouse_embryo/main"
+supp_publi_output_folder: "results/publication_oup_vrepro/mouse_embryo/supp"
+main_publi_output_folder: "results/publication_oup_vrepro/mouse_embryo/main"

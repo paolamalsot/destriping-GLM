@@ -1,0 +1,19 @@
+defaults:
+  - _self_
+  - override hydra/launcher: ../../../../hydra/launcher/cluster_4G
+
+parsing_fun: experiments.src.memory_requirements.destriping_only
+
+experiment_output_dir: results/memory_requirements/destriping/human_lymph_node
+
+benchmark_output_file: "experiments/benchmark_output_files/memory_requirements/human_lymph_node.yaml"
+
+dataset:
+  path_data: "results/Visium_HD_Human_Lymph_Node_tissue/10x_segmentation__09_01_26__15_29_58"
+  cell_id_label: "cell_id"
+
+hydra:
+  job:
+    chdir: true
+  sweep:
+    dir: ${experiment_output_dir}/${now:%Y-%m-%d}/${now:%H-%M-%S}

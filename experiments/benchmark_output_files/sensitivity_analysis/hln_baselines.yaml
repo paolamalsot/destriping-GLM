@@ -1,0 +1,13 @@
+runs_baselines:
+  ours: "results/benchmark_destriping_model/human_lymph_node/glum_benchmark_v3/v3/2026-01-10/00-42-49"
+  collapse_label: "results/segmentation_sensitivity/human_lymph_node/destriping_collapse_label/2026-03-17/11-34-56"
+
+dividing_by_ratio_baselines:
+  original: "results/benchmark_destriping_model/human_lymph_node/dividing_by_factors/2026-01-10/00-33-14/1__factors=ones"
+  dividing_99_quantile: "results/benchmark_destriping_model/human_lymph_node/dividing_by_factors/2026-01-10/00-33-14/0__factors=quantiles"
+
+not_factor_based_baseline:
+  2SN: "results/benchmark_destriping_model/human_lymph_node/b2c_destriping/2026-01-10/00-33-05/0__+dataset=human_lymph_node"
+  bin_level_normalization: "results/benchmark_destriping_model/human_lymph_node/bin_level_normalization/2026-01-10/00-33-19/0__+dataset=human_lymph_node"
+
+supp_baselines_dir: null

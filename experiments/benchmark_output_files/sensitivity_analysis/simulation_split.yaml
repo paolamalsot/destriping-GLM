@@ -1,0 +1,23 @@
+# Split sensitivity (simulation): all seeds in one config
+seeds:
+  42:
+    runs:
+      p_split_5: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_split_seed_42/2026-03-15/22-28-11/0__p_split=0.05"
+      p_split_10: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_split_seed_42/2026-03-15/22-28-11/1__p_split=0.1"
+      p_split_50: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_split_seed_42/2026-03-15/22-28-11/2__p_split=0.5"
+      p_split_90: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_split_seed_42/2026-03-15/22-28-11/3__p_split=0.9"
+  64:
+    runs:
+      p_split_5: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_split_seed_64/2026-03-15/22-28-16/0__p_split=0.05"
+      p_split_10: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_split_seed_64/2026-03-15/22-28-16/1__p_split=0.1"
+      p_split_50: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_split_seed_64/2026-03-15/22-28-16/2__p_split=0.5"
+      p_split_90: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_split_seed_64/2026-03-15/22-28-16/3__p_split=0.9"
+  754:
+    runs:
+      p_split_5: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_split_seed_754/2026-03-15/22-28-21/0__p_split=0.05"
+      p_split_10: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_split_seed_754/2026-03-15/22-28-21/1__p_split=0.1"
+      p_split_50: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_split_seed_754/2026-03-15/22-28-21/2__p_split=0.5"
+      p_split_90: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_split_seed_754/2026-03-15/22-28-21/3__p_split=0.9"
+
+output_dir: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/analysis_split"
+figures_output_dir: "results/publication_oup_vrepro/segmentation_sensitivity/figures/simulation/split"

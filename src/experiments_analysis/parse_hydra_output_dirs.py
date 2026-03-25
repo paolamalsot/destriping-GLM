@@ -79,8 +79,10 @@ def get_time_dict(x: pd.Series):
 def get_status_dict(x: pd.Series):
     run_dir = x.run_dir
     status_dict_path = os.path.join(run_dir, "status_dict.json")
-    with open(status_dict_path) as file:
-        dict_ = json.load(file)
-    s = pd.Series(dict_)
-    s["status_dict"] = dict_
-    return s
+    if os.path.exists(status_dict_path):
+        with open(status_dict_path) as file:
+            dict_ = json.load(file)
+        s = pd.Series(dict_)
+        s["status_dict"] = dict_
+        return s
+    else: return pd.Series({})

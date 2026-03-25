@@ -35,6 +35,7 @@ def analysis_global_structure(
     color_dict=None,
     to_plot_global_structure=None,
     refs_global_structure=None,
+    fill_nans_from_original=False,
 ):
     # note that it is good to add in the name both the fitting method and the destripe method
     # to_plot_global_structure: list of df_results["names"] that we want to appear on the global structure plots
@@ -54,7 +55,7 @@ def analysis_global_structure(
 
     matrices_output_folder = P(output_folder) / "destriping_matrices"
     matrices_output_folder.mkdir(parents=True, exist_ok=True)
-    save_n_counts_matrices(df_results, index_oi_dict, matrices_output_folder)
+    save_n_counts_matrices(df_results, index_oi_dict, matrices_output_folder, fill_nans_from_original=fill_nans_from_original)
 
     global_structure_output_folder = P(output_folder) / "plots_global_structure"
     global_structure_output_folder.mkdir(parents=True, exist_ok=True)
@@ -93,7 +94,6 @@ def analysis_global_structure(
         comp_keys,
         refs_global_structure,
         global_structure_output_folder,
-        cosine_dist=True,
     )
 
     striping_intensity_output_folder = P(output_folder) / "striping_intensity"

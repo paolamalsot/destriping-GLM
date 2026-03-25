@@ -1,0 +1,29 @@
+# Merge sensitivity (human lymph node): all seeds in one config
+seeds:
+  42:
+    runs:
+      p_merge_0.01: "results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_42/2026-03-19/16-20-59/0__p_merge=0.01"
+      p_merge_10: "results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_42/2026-03-19/16-20-59/1__p_merge=0.1"
+      p_merge_25: "results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_42/2026-03-19/16-20-59/2__p_merge=0.25"
+      p_merge_50: "results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_42/2026-03-19/16-20-59/3__p_merge=0.5"
+      p_merge_80: "results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_42/2026-03-19/16-20-59/4__p_merge=0.8"
+      p_merge_100: "results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_42/2026-03-19/16-20-59/5__p_merge=1.0"
+  64:
+    runs:
+      p_merge_0.01: "results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_64/2026-03-19/16-21-04/0__p_merge=0.01"
+      p_merge_10: "results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_64/2026-03-19/16-21-04/1__p_merge=0.1"
+      p_merge_25: "results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_64/2026-03-19/16-21-04/2__p_merge=0.25"
+      p_merge_50: "results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_64/2026-03-19/16-21-04/3__p_merge=0.5"
+      p_merge_80: "results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_64/2026-03-19/16-21-04/4__p_merge=0.8"
+      p_merge_100: "results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_64/2026-03-19/16-21-04/5__p_merge=1.0"
+  754:
+    runs:
+      p_merge_0.01: "results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_754/2026-03-19/16-21-09/0__p_merge=0.01"
+      p_merge_10: "results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_754/2026-03-19/16-21-09/1__p_merge=0.1"
+      p_merge_25: "results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_754/2026-03-19/16-21-09/2__p_merge=0.25"
+      p_merge_50: "results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_754/2026-03-19/16-21-09/3__p_merge=0.5"
+      p_merge_80: "results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_754/2026-03-19/16-21-09/4__p_merge=0.8"
+      p_merge_100: "results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_754/2026-03-19/16-21-09/5__p_merge=1.0"
+
+output_dir: "results/segmentation_sensitivity/human_lymph_node/analysis_merge"
+figures_output_dir: "results/publication_oup_vrepro/segmentation_sensitivity/figures/human_lymph_node/merge"

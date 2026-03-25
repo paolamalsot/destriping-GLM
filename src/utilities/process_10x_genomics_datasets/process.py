@@ -4,7 +4,7 @@ import pandas as pd
 import os
 
 
-def process(path_data, source_img_path, path_barcodes, output_dir):
+def process(path_data, source_img_path, path_barcodes, output_dir, min_counts=1):
     os.makedirs(output_dir, exist_ok=True)
 
     data = load_visium_hd(path_data, source_img_path)
@@ -18,7 +18,8 @@ def process(path_data, source_img_path, path_barcodes, output_dir):
     data.n_counts
 
     data.filter_genes(min_cells=3)
-    data.filter_cells(min_counts=1)
+    if min_counts is not None:
+        data.filter_cells(min_counts=min_counts)
     data.n_counts
 
     data.save(output_dir)

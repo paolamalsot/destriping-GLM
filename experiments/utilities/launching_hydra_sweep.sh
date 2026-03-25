@@ -16,6 +16,8 @@ multirun() {
 
     option_configpath="--config-path ../../experiments/hydra_config/${config_main}"
     local outfile=$(make_outfile)
+    mkdir -p "$(dirname "$outfile")"
+    echo "echo1"
     echo "$outfile"
     python experiments/utilities/experiment.py $option_configpath -m -cn "$config_sub" &> "$outfile"
 }

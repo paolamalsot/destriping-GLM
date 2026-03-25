@@ -267,44 +267,66 @@ class spatialAdata:
         return self
 
     @history_decorator
-    def segment_gex_stardist(self, mpp, output_dir):
-        self.n_counts
-        # in bin2cell they use n_counts_adjusted...
-        # wierd that they do not use log1p
+    def segment_gex_stardist_from_obs(
+        self,
+        obs_label: str = "n_counts",
+        mpp: float = 0.5,
+        output_dir: str = "stardist",
+        labels_key: str | None = None,
+        prob_thresh: float = 0.01,
+        nms_thresh: float = 0.1,
+        log1p: bool = False,
+        sigma: int | None = 5,
+        pad_to: tuple | None = None,
+    ):
+        if labels_key is None:
+            labels_key = f"labels_gex_{obs_label}"
+        img_key = f"gex_stardist_{obs_label}"
+
         os.makedirs(output_dir, exist_ok=True)
-        img_path = os.path.join(output_dir, "gex.tiff")
-        img_key = "gex_stardist"
-        labels_key = "labels_gex"
-        self.n_counts
-        if "n_counts_adjusted" in self.obs.columns:
-            assert np.all(
-                np.isclose(self.obs["n_counts"], self.obs["n_counts_adjusted"])
-            )
+        img_path = os.path.join(output_dir, f"gex_{obs_label}.tiff")
+        labels_path = os.path.join(output_dir, f"gex_{obs_label}.npz")
+
         self.grid_image_from_label_custom_mpp(
-            "n_counts",
+            obs_label,
             new_image_label=img_key,
-            log1p=False,
+            log1p=log1p,
             mpp=mpp,
-            sigma=5,
+            sigma=sigma,
             save_path=img_path,
-            pad_to=(3350, 3350),
+            pad_to=pad_to,
         )
 
-        labels_path = os.path.join(output_dir, "gex.npz")
         b2c.stardist(
             image_path=img_path,
             labels_npz_path=labels_path,
             stardist_model="2D_versatile_fluo",
-            prob_thresh=0.05,
-            nms_thresh=0.5,
+            prob_thresh=prob_thresh,
+            nms_thresh=nms_thresh,
         )
 
         self.insert_labels(
-            labels_npz_path=labels_path,  # file with pixel coordinates and labels of cells...
-            img_key=img_key,  # was it based on H&E (spatial) or GEX
+            labels_npz_path=labels_path,
+            img_key=img_key,
             labels_key=labels_key,
         )
 
+        return self
+
+    @history_decorator
+    def segment_gex_stardist(self, mpp, output_dir):
+        # backward-compatible wrapper around segment_gex_stardist_from_obs
+        self.segment_gex_stardist_from_obs(
+            obs_label="n_counts",
+            mpp=mpp,
+            output_dir=output_dir,
+            labels_key="labels_gex",
+            prob_thresh=0.05,
+            nms_thresh=0.5,
+            log1p=False,
+            sigma=5,
+            pad_to=(3350, 3350),
+        )
         self.save(os.path.join(output_dir, "sdata"))
 
     def insert_labels(self, labels_npz_path, img_key, labels_key="labels_he"):
@@ -343,6 +365,106 @@ class spatialAdata:
         self.adata.obs.loc[NA_positions, labels_key] = pd.NA
         self.adata.obs[labels_key] = self.adata.obs[labels_key].astype("category")
         # replace_0_labels_by_nan(self.adata, labels_key)
+
+    def segmentation_stats(self, labels_key: str) -> pd.Series:
+        """Per-segmentation summary statistics.
+
+        Returns a Series with:
+          n_cells           – number of unique cell IDs detected
+          cell_coverage     – fraction of bins assigned to a cell
+          mean_bins_per_cell
+          median_bins_per_cell
+          cv_bins_per_cell  – coefficient of variation of bins-per-cell
+        """
+        col = self.obs[labels_key]
+        assigned = col.notna()
+        bins_per_cell = col[assigned].value_counts()
+        mean_bins = bins_per_cell.mean()
+        return pd.Series(
+            {
+                "n_cells": int(bins_per_cell.shape[0]),
+                "cell_coverage": float(assigned.mean()),
+                "mean_bins_per_cell": float(mean_bins),
+                "median_bins_per_cell": float(bins_per_cell.median()),
+                "cv_bins_per_cell": float(bins_per_cell.std() / mean_bins)
+                if mean_bins > 0
+                else np.nan,
+            },
+            name=labels_key,
+        )
+
+    def segmentation_overlap(
+        self, labels_key_1: str, labels_key_2: str
+    ) -> pd.DataFrame:
+        """Pairwise overlap between two segmentations.
+
+        For every pair of cells (one from each segmentation) that share at
+        least one bin, returns a row with:
+          <labels_key_1>   – cell ID from segmentation 1
+          <labels_key_2>   – cell ID from segmentation 2
+          n_shared         – number of bins in common
+          size_1           – total bins of the cell in segmentation 1
+          size_2           – total bins of the cell in segmentation 2
+          iou                    – n_shared / (size_1 + size_2 - n_shared)
+          iob__<labels_key_1>   – n_shared / size_1  (recall from segmentation-1 perspective)
+          iob__<labels_key_2>   – n_shared / size_2  (recall from segmentation-2 perspective)
+
+        Uses sparse matrix multiplication (M1.T @ M2) for speed: O(n_bins)
+        instead of a pandas groupby sort.
+        """
+        from scipy.sparse import csr_matrix as _csr
+
+        col1 = self.obs[labels_key_1]
+        col2 = self.obs[labels_key_2]
+
+        if not hasattr(col1, "cat"):
+            col1 = col1.astype("category")
+        if not hasattr(col2, "cat"):
+            col2 = col2.astype("category")
+
+        both = (col1.notna() & col2.notna()).values
+        codes1 = col1.cat.codes.values[both]  # >= 0 after notna filter
+        codes2 = col2.cat.codes.values[both]
+
+        n_bins = int(both.sum())
+        n_cells1 = len(col1.cat.categories)
+        n_cells2 = len(col2.cat.categories)
+        bin_idx = np.arange(n_bins)
+
+        M1 = _csr(
+            (np.ones(n_bins, np.float32), (bin_idx, codes1)),
+            shape=(n_bins, n_cells1),
+        )
+        M2 = _csr(
+            (np.ones(n_bins, np.float32), (bin_idx, codes2)),
+            shape=(n_bins, n_cells2),
+        )
+
+        overlap = M1.T @ M2  # (n_cells1, n_cells2), values = shared bin counts
+        cx1, cx2 = overlap.nonzero()
+        n_shared = np.asarray(overlap[cx1, cx2]).flatten().astype(np.int32)
+
+        size1 = np.asarray(M1.sum(axis=0)).flatten().astype(np.int32)
+        size2 = np.asarray(M2.sum(axis=0)).flatten().astype(np.int32)
+
+        cats1 = col1.cat.categories.values
+        cats2 = col2.cat.categories.values
+
+        result = pd.DataFrame(
+            {
+                labels_key_1: cats1[cx1],
+                labels_key_2: cats2[cx2],
+                "n_shared": n_shared,
+                "size_1": size1[cx1],
+                "size_2": size2[cx2],
+            }
+        )
+        result["iou"] = result["n_shared"] / (
+            result["size_1"] + result["size_2"] - result["n_shared"]
+        )
+        result[f"iob__{labels_key_1}"] = result["n_shared"] / result["size_1"]
+        result[f"iob__{labels_key_2}"] = result["n_shared"] / result["size_2"]
+        return result
 
     @history_decorator
     def destripe_bin2cell(self):
@@ -483,26 +605,30 @@ class spatialAdata:
 
         return row_factors_ * col_factors_
 
+    def _n_counts_adjusted_dividing(
+        self, row_factors: pd.Series, col_factors: pd.Series
+    ) -> pd.Series:
+        """Compute per-bin n_counts_adjusted via factor division without modifying self.
+        Requires self.obs["n_counts"] to be populated (call self.n_counts first)."""
+        destripe_factor = pd.Series(
+            self.get_destripe_factors(row_factors, col_factors), index=self.obs.index
+        )
+        n_counts_adjusted = self.obs["n_counts"] / destripe_factor
+        # inf arises when destripe_factor > 0 and n_counts == 0 — keep original count
+        inf_sel = np.isinf(n_counts_adjusted)
+        n_counts_adjusted[inf_sel] = self.obs.loc[inf_sel, "n_counts"]
+        # both zero: leave as zero
+        zero_zero_sel = (self.obs["n_counts"].values == 0) & (destripe_factor.values == 0)
+        n_counts_adjusted[zero_zero_sel] = 0
+        assert not n_counts_adjusted[zero_zero_sel].isna().any()
+        return n_counts_adjusted
+
     @history_decorator
     def destripe_dividing_factors(self, row_factors: pd.Series, col_factors: pd.Series):
         self.n_counts
-        self.obs["destripe_factor"] = self.get_destripe_factors(
+        self.obs["n_counts_adjusted"] = self._n_counts_adjusted_dividing(
             row_factors, col_factors
         )
-        self.obs["n_counts_adjusted"] = self.obs["n_counts"]
-        self.obs["n_counts_adjusted"] = (
-            self.obs["n_counts_adjusted"] / self.obs["destripe_factor"]
-        )
-        # correcting the n_counts_ajusted which are inf and nans caused by n_counts = 0 and destripe_factor = 0...
-        inf_selector = np.isinf(self.obs["n_counts_adjusted"])
-        self.obs.loc[inf_selector, "n_counts_adjusted"] = self.obs.loc[
-            inf_selector, "n_counts"
-        ]
-        zero_zero_selector = (self.obs["n_counts"].values == 0) & (
-            self.obs["destripe_factor"].values == 0
-        )
-        self.obs.loc[zero_zero_selector, "n_counts_adjusted"] = 0
-        assert not (self.obs.loc[zero_zero_selector, "n_counts_adjusted"].isna().any())
         destripe_counts(
             self.adata, counts_key="n_counts", adjusted_counts_key="n_counts_adjusted"
         )
@@ -564,6 +690,36 @@ class spatialAdata:
         logging.debug("9")
         return self
 
+    def _n_counts_adjusted_qm(
+        self,
+        row_factors: pd.Series,
+        col_factors: pd.Series,
+        gene_expression_per_bin: AnnData,
+        dist="poisson",
+        dist_params=None,
+    ) -> pd.Series:
+        """Compute per-bin n_counts_adjusted via QM on total counts without modifying self.
+        Requires self.obs["n_counts"] to be populated (call self.n_counts first).
+        Side-effect: sets gene_expression_per_bin.obs["n_counts"]."""
+        method = get_qm_fun(dist, dist_params=dist_params)
+        destripe_factor = self.get_destripe_factors(row_factors, col_factors)
+        gene_expression_per_bin.obs["n_counts"] = gene_expression_per_bin.X.sum(-1)
+        n_counts_adjusted = method(
+            self.obs.n_counts.values,
+            gene_expression_per_bin.obs.n_counts.loc[self.adata.obs_names].values,
+            destripe_factor,
+        )
+        return pd.Series(n_counts_adjusted, index=self.obs.index)
+
+    def _compute_n_counts_adjusted(self, method, kwargs) -> pd.Series:
+        """Dispatch to the appropriate n_counts_adjusted helper for row-scaling methods."""
+        if method is spatialAdata.destripe_dividing_factors:
+            return self._n_counts_adjusted_dividing(**kwargs)
+        elif method is spatialAdata.destripe_dividing_factors_qm_tot_counts:
+            return self._n_counts_adjusted_qm(**kwargs)
+        else:
+            raise ValueError(f"No fast-path n_counts_adjusted implementation for {method}")
+
     @history_decorator
     def destripe_dividing_factors_qm_tot_counts(
         self,
@@ -574,22 +730,8 @@ class spatialAdata:
         dist_params=None,
     ):
         self.n_counts
-        method = get_qm_fun(dist, dist_params=dist_params)
-
-        self.obs["destripe_factor"] = self.get_destripe_factors(
-            row_factors, col_factors
-        )
-
-        # if gene_expression_per_cell is None:
-        #     gene_expression_per_cell = self.expected_cell_ge_conc_from_stripe_factors(row_factors, col_factors, cell_id = cell_id_label)
-
-        gene_expression_per_bin.obs["n_counts"] = gene_expression_per_bin.X.sum(-1)
-        self.obs["n_counts_adjusted"] = method(
-            self.obs.n_counts.values,
-            gene_expression_per_bin.obs.n_counts.loc[
-                self.adata.obs_names
-            ].values,  # normally no need to put .astype str!
-            self.obs["destripe_factor"].values,
+        self.obs["n_counts_adjusted"] = self._n_counts_adjusted_qm(
+            row_factors, col_factors, gene_expression_per_bin, dist, dist_params
         )
         destripe_counts(
             self.adata, counts_key="n_counts", adjusted_counts_key="n_counts_adjusted"
@@ -612,19 +754,31 @@ class spatialAdata:
             args_nucl = {}
 
         cyto_indices = self.obs.index.difference(nucl_indices)
-        # cyto_indices = self.obs[pd.isna(self.obs[cell_id_label])].index
-        # nucl_indices = self.obs[~pd.isna(self.obs[cell_id_label])].index
-        cyto = self[cyto_indices].copy()
-        nucl = self[nucl_indices].copy()
-        # args_cyto = match_method_signature(method_cyto, args_cyto)
-        # args_nucl = match_method_signature(method_nucl, args_nucl)
-        method_cyto(cyto, **args_cyto)
-        method_nucl(nucl, **args_nucl)
-        new_adata = anndata.concat([cyto.adata, nucl.adata], uns_merge="same")
-        new_adata.uns = deepcopy(self.adata.uns)
-        new_adata = new_adata[self.adata.obs_names]  # aligning
-        new_adata = new_adata.copy()  # avoids having a view...
-        self.adata = new_adata
+
+        if method_nucl in _ROW_SCALING_METHODS and method_cyto in _ROW_SCALING_METHODS:
+            # Fast path: compute n_counts_adjusted for each subset on views (no X copy),
+            # then apply destripe_counts once on the full data.
+            self.n_counts
+            n_adj_cyto = self[cyto_indices]._compute_n_counts_adjusted(method_cyto, args_cyto)
+            n_adj_nucl = self[nucl_indices]._compute_n_counts_adjusted(method_nucl, args_nucl)
+            self.obs["n_counts_adjusted"] = pd.concat([n_adj_cyto, n_adj_nucl]).reindex(
+                self.obs.index
+            )
+            destripe_counts(
+                self.adata, counts_key="n_counts", adjusted_counts_key="n_counts_adjusted"
+            )
+            self.n_counts
+        else:
+            # Fallback for element-wise methods (e.g. destripe_quantile_matching)
+            cyto = self[cyto_indices].copy()
+            nucl = self[nucl_indices].copy()
+            method_cyto(cyto, **args_cyto)
+            method_nucl(nucl, **args_nucl)
+            new_adata = anndata.concat([cyto.adata, nucl.adata], uns_merge="same")
+            del cyto, nucl
+            new_adata.uns = deepcopy(self.adata.uns)
+            new_adata = new_adata[self.adata.obs_names].copy()
+            self.adata = new_adata
         return self
 
     @history_decorator
@@ -638,7 +792,7 @@ class spatialAdata:
         return self
 
     @history_decorator
-    def filter_cells(self, min_counts=None, min_genes=None):
+    def filter_cells(self, min_counts=None, min_genes=None): #actually fitering bins
         sc.pp.filter_cells(self.adata, min_counts=min_counts, min_genes=min_genes)
         return self
 
@@ -954,9 +1108,7 @@ class spatialAdata:
         img[self.array_coords[:, 0], self.array_coords[:, 1]] = vals
 
         scalefactors_dict = self.adata.uns["spatial"][self.library_id]["scalefactors"]
-        bin_size_um = scalefactors_dict["bin_size_um"]
-
-        scalefactor = bin_size_um / mpp
+        scalefactor = self.bin_size_um / mpp
 
         if mpp != 2:
             dim = np.round(np.array(img.shape) * scalefactor).astype(int)[::-1]
@@ -1185,6 +1337,10 @@ class spatialAdata:
         return self.adata.obsm["coords__array"]
 
     @property
+    def bin_size_um(self):
+        return self.adata.uns["spatial"][self.library_id]["scalefactors"]["bin_size_um"]
+
+    @property
     def spotsize(self):
         return self.adata.uns["spatial"][self.library_id]["scalefactors"][
             "spot_diameter_fullres"
@@ -1224,3 +1380,12 @@ class spatialAdata:
 
     def nucl_mask(self, cell_id_label="cell_id"):
         return np.logical_not(self.obs[cell_id_label].isna().to_numpy())
+
+
+# Row-scaling methods: those whose per-bin adjustment reduces to a scalar multiplier
+# on n_counts (and therefore on each row of X via destripe_counts).
+# Used by destripe_combi_nucl_cyto to take the fast path that avoids copying X.
+_ROW_SCALING_METHODS = {
+    spatialAdata.destripe_dividing_factors,
+    spatialAdata.destripe_dividing_factors_qm_tot_counts,
+}

@@ -6,8 +6,8 @@ defaults:
 experiment_output_dir: results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/${.model_name}
 
 hydra:
-#  launcher:
-#      mem_per_cpu: 10G
+  launcher:
+      mem_per_cpu: 10G
   sweeper:
     params:
       +dataset: simulation_4_with_struct_nb_weibul_2

@@ -1,0 +1,25 @@
+defaults:
+  - ../../../hydra/output_structure/default@_here_
+  - ../../datasets/human_lymph_node@dataset
+  - ../../../destriping_model/human_lymph_node/models/glum/v3@_here_
+  - override hydra/launcher: ../../../../../hydra/launcher/cluster_4G
+  - _self_
+
+parsing_fun: experiments.src.segmentation_sensitivity.destriping
+
+subsampling_run_dir: "results/segmentation_sensitivity/human_lymph_node/subsampled_data_seed_64/2026-03-15/21-10-26/1__seed=64"
+
+percentage: 1.0
+
+experiment_output_dir: results/segmentation_sensitivity/human_lymph_node/destriping_subsample_seed_64
+
+model_args:
+  parallel: false
+
+hydra:
+  launcher:
+    mem_per_cpu: 20G
+    timeout_min: 600
+  sweeper:
+    params:
+      percentage: 0.80,0.50,0.25,0.1,0.01

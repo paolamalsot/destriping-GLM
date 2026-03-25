@@ -5,7 +5,7 @@ from src.destriping.GLUM.init import (
     get_ones_init_sol,
     get_quantiles_init_sol,
 )
-from src.destriping.GLUM.sdata_to_df import format_obs_to_df
+from src.destriping.GLUM.sdata_to_df import format_obs_to_df, data_to_df
 from types import SimpleNamespace
 from src.destriping.GLUM.cv_splits import default_cv_splits, cv_splits
 from src.destriping.GLUM.penalties import P_hw_only_from_df
@@ -63,9 +63,10 @@ def build_poisson_sol_from_stripings(sol, spatialdata, cell_id_label):
 class GlumWrapper:
     def __init__(
         self,
-        data,
-        id_label,
-        init_method: str | None,
+        data = None,
+        id_label = None,
+        data_df = None,
+        init_method: str | None = None,
         init_method_args=None,
         family="nbinom",
         family_params=None,
@@ -112,16 +113,10 @@ class GlumWrapper:
         self.timeout = timeout
         self.kwargs = kwargs
         self.glm_ = None
+        self.df = data_df
 
     def df_from_sdata(self):
-        self.data.add_array_coords_to_obs()
-        obs = self.data.obs
-        obs = obs.query(
-            f"~{self.id_label}.isna()"
-        ).copy()  # this will NOT erase the cells "NA" "NaN" ?
-        obs[self.id_label] = obs[self.id_label].astype(str)
-        obs[self.id_label] = "id_" + obs[self.id_label]
-        self.df = format_obs_to_df(obs, self.id_label)
+        self.df = data_to_df(self.data, self.id_label)
 
     def initialize_P2(self):
         return initialize_penalty(self.P2, self.df, self.freeze_c)
@@ -174,7 +169,9 @@ class GlumWrapper:
         return alphas
 
     def fit(self):
-        self.df_from_sdata()
+        if self.df is None:
+            self.df_from_sdata()
+        
         self.initialize_sol()
 
         if self.regressorCV or self.sklearnCV:

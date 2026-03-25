@@ -1,0 +1,25 @@
+defaults:
+  - ../../../hydra/output_structure/default@_here_
+  - ../../datasets/human_lymph_node@dataset
+  - ../../../destriping_model/human_lymph_node/models/glum/v3@_here_
+  - override hydra/launcher: ../../../../../hydra/launcher/cluster_4G
+  - _self_
+
+parsing_fun: experiments.src.segmentation_sensitivity.destriping_merge
+
+merging_run_dir: "results/segmentation_sensitivity/human_lymph_node/merged_seed_754/2026-03-16/19-05-47/2__seed=754"
+
+p_merge: 0.01
+
+experiment_output_dir: results/segmentation_sensitivity/human_lymph_node/destriping_merge_seed_754
+
+model_args:
+  parallel: false
+
+hydra:
+  launcher:
+    mem_per_cpu: 20G
+    timeout_min: 600
+  sweeper:
+    params:
+      p_merge: 0.01,0.1,0.25,0.5,0.8,1.0

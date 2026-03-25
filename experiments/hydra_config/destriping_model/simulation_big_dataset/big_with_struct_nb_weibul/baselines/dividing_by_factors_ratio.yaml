@@ -2,7 +2,7 @@ defaults:
   - ../sweep@_here_
   - ../../models/dividing_by_factors/sweep_ratio_median@_here_
   - _self_
-  #- override hydra/launcher: ../../../../../hydra/launcher/cluster_4G
+  - override hydra/launcher: ../../../../../../hydra/launcher/cluster_4G
 
 hydra:
   searchpath:

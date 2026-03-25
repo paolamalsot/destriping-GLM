@@ -26,3 +26,4 @@ model_args:
   selection: "random"
   solver: "lbfgs"
   max_iter: 100000
+  parallel: false

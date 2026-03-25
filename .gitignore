@@ -11,4 +11,10 @@ __pycache__/
 *.pyc
 *.pyo
 *.so
-.pixi/
+.pixi/pixi.lock
+pixi.lock
+pixi_before.lock
+overlay.png
+screenshots/
+temp_outputs/
+test_plots/

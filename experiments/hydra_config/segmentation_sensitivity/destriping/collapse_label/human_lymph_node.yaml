@@ -1,0 +1,18 @@
+defaults:
+  - ../../../hydra/output_structure/default@_here_
+  - ../../datasets/human_lymph_node@dataset
+  - ../../../destriping_model/human_lymph_node/models/glum/v3@_here_
+  - override hydra/launcher: ../../../../../hydra/launcher/cluster_4G
+  - _self_
+
+parsing_fun: experiments.src.segmentation_sensitivity.destriping_collapse_label
+
+experiment_output_dir: results/segmentation_sensitivity/human_lymph_node/destriping_collapse_label
+
+model_args:
+  parallel: false
+
+hydra:
+  launcher:
+    mem_per_cpu: 20G
+    timeout_min: 600

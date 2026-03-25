@@ -1,0 +1,23 @@
+# Split sensitivity (human lymph node): all seeds in one config
+seeds:
+  42:
+    runs:
+      p_split_5: "results/segmentation_sensitivity/human_lymph_node/destriping_split_seed_42/2026-03-15/22-59-38/0__p_split=0.05"
+      p_split_10: "results/segmentation_sensitivity/human_lymph_node/destriping_split_seed_42/2026-03-15/22-59-38/1__p_split=0.1"
+      p_split_50: "results/segmentation_sensitivity/human_lymph_node/destriping_split_seed_42/2026-03-15/22-59-38/2__p_split=0.5"
+      p_split_90: "results/segmentation_sensitivity/human_lymph_node/destriping_split_seed_42/2026-03-15/22-59-38/3__p_split=0.9"
+  64:
+    runs:
+      p_split_5: "results/segmentation_sensitivity/human_lymph_node/destriping_split_seed_64/2026-03-15/22-59-43/0__p_split=0.05"
+      p_split_10: "results/segmentation_sensitivity/human_lymph_node/destriping_split_seed_64/2026-03-15/22-59-43/1__p_split=0.1"
+      p_split_50: "results/segmentation_sensitivity/human_lymph_node/destriping_split_seed_64/2026-03-15/22-59-43/2__p_split=0.5"
+      p_split_90: "results/segmentation_sensitivity/human_lymph_node/destriping_split_seed_64/2026-03-15/22-59-43/3__p_split=0.9"
+  754:
+    runs:
+      p_split_5: "results/segmentation_sensitivity/human_lymph_node/destriping_split_seed_754/2026-03-15/22-59-48/0__p_split=0.05"
+      p_split_10: "results/segmentation_sensitivity/human_lymph_node/destriping_split_seed_754/2026-03-15/22-59-48/1__p_split=0.1"
+      p_split_50: "results/segmentation_sensitivity/human_lymph_node/destriping_split_seed_754/2026-03-15/22-59-48/2__p_split=0.5"
+      p_split_90: "results/segmentation_sensitivity/human_lymph_node/destriping_split_seed_754/2026-03-15/22-59-48/3__p_split=0.9"
+
+output_dir: "results/segmentation_sensitivity/human_lymph_node/analysis_split"
+figures_output_dir: "results/publication_oup_vrepro/segmentation_sensitivity/figures/human_lymph_node/split"

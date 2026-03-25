@@ -27,6 +27,7 @@ def analysis(
     not_factor_based_baseline,
     supp_baselines_dir,
     synthetic_data=True,
+    fill_nans_from_original=False,
 ):
     P(output_dir).mkdir(parents=True, exist_ok=True)
     global_structure_analysis_folder = P(output_dir) / "global_structure_analysis"
@@ -125,4 +126,5 @@ def analysis(
         global_structure_analysis_folder,
         to_plot_global_structure=[],
         refs_global_structure=refs_global_structure,
+        fill_nans_from_original=fill_nans_from_original,
     )

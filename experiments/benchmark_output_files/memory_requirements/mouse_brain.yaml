@@ -1,0 +1,3 @@
+canonical_run: "results/benchmark_destriping_model/mouse_brain_v3/Glum_benchmark_v3/v3/2025-12-30/10-02-15/0__+dataset=mouse_brain"
+sol_dir:       "results/benchmark_destriping_model/mouse_brain_v3/Glum_benchmark_v3/v3/2025-12-30/10-02-15/0__+dataset=mouse_brain/sol"
+dist_pkl:      "results/benchmark_destriping_model/mouse_brain_v3/Glum_benchmark_v3/v3/2025-12-30/10-02-15/0__+dataset=mouse_brain/dist.pkl"
