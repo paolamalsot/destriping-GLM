@@ -224,8 +224,7 @@ def _parse_feature_names(feature_names_tuple):
         var_indices[name][0].append(i)
         var_indices[name][1].append(category)
     return {
-        name: (np.array(indices), cats)
-        for name, (indices, cats) in var_indices.items()
+        name: (np.array(indices), cats) for name, (indices, cats) in var_indices.items()
     }
 
 
@@ -241,7 +240,12 @@ def extract_coef(coef, feature_names):
         names[indices] = var_name
         categories[indices] = cats
     return pd.DataFrame(
-        {"feature_names": feature_names, "coef": coef, "name": names, "category": categories}
+        {
+            "feature_names": feature_names,
+            "coef": coef,
+            "name": names,
+            "category": categories,
+        }
     )
 
 
@@ -261,7 +265,9 @@ def rescale_hwc(h: pd.Series, w: pd.Series, c: pd.Series, exp_intercept: float):
     f_c = exp_intercept / (f_h * f_w)
     return h * f_h, w * f_w, c * f_c
 
+
 UPPER_EXP_CLIP = 30
+
 
 def extract_coef_with_dropped_level(
     glum_coef, glum_feature_names, coef_key, dropped_level
@@ -288,7 +294,10 @@ def glum_coef_to_hwc(coef, intercept, feature_names, dropped_levels_dict):
         )
         coef_dict[coef_name] = coef_specific
 
-    h, w, c = rescale_hwc(**coef_dict, exp_intercept=np.exp(np.clip(intercept, a_min = None, a_max=UPPER_EXP_CLIP)))
+    h, w, c = rescale_hwc(
+        **coef_dict,
+        exp_intercept=np.exp(np.clip(intercept, a_min=None, a_max=UPPER_EXP_CLIP)),
+    )
     h.index = h.index.to_numpy().astype(int)
     w.index = w.index.to_numpy().astype(int)
     return h, w, c
@@ -521,8 +530,10 @@ def fit_GLM_glum(
             CoordinateDescentRegressor,
             LBFGSControlRegressor,
         )
+
         regressor_class = (
-            CoordinateDescentRegressor if solver == "coordinate_descent"
+            CoordinateDescentRegressor
+            if solver == "coordinate_descent"
             else LBFGSControlRegressor
         )
     else:
@@ -674,8 +685,9 @@ def fit_GLM_glum(
     return h_hat, w_hat, c_hat, regressor
 
 
-def _standardize_and_prepare(X_tabmat, P2_mask, sample_weight, alpha, l1_ratio,
-                              start_params):
+def _standardize_and_prepare(
+    X_tabmat, P2_mask, sample_weight, alpha, l1_ratio, start_params
+):
     """Standardize X and P2 to match glum's preprocessing.
 
     Returns (X_std, col_means, col_stds, P2, coef, sample_weight).
@@ -692,10 +704,13 @@ def _standardize_and_prepare(X_tabmat, P2_mask, sample_weight, alpha, l1_ratio,
     P1_dummy = np.zeros(n_features, dtype=np.float64)
 
     X_std, col_means, col_stds, _, _, _, _, P2_no_alpha = _standardize(
-        X_tabmat, sample_weight,
-        center_predictors=True,             # = fit_intercept
-        estimate_as_if_scaled_model=False,   # = scale_predictors default
-        lower_bounds=None, upper_bounds=None, A_ineq=None,
+        X_tabmat,
+        sample_weight,
+        center_predictors=True,  # = fit_intercept
+        estimate_as_if_scaled_model=False,  # = scale_predictors default
+        lower_bounds=None,
+        upper_bounds=None,
+        A_ineq=None,
         P1=P1_dummy,
         P2=P2_no_alpha,
     )
@@ -714,10 +729,14 @@ def _standardize_and_prepare(X_tabmat, P2_mask, sample_weight, alpha, l1_ratio,
 def _unstandardize_coef(coef_out, col_means, col_stds):
     """Unstandardize intercept and coefficients (matching glum)."""
     from glum._glm import _unstandardize
+
     intercept = float(coef_out[0])
     coef_features = coef_out[1:].copy()
     intercept, coef_features = _unstandardize(
-        col_means, col_stds, intercept, coef_features,
+        col_means,
+        col_stds,
+        intercept,
+        coef_features,
     )
     return intercept, coef_features
 
@@ -740,7 +759,8 @@ def _fit_coordinate_descent(df, h_start, w_start, c_start, **kwargs):
 
     # ---- build tabmat SplitMatrix once -----------------------------------
     X_tabmat = tm.from_pandas(
-        X_df, drop_first=True,
+        X_df,
+        drop_first=True,
         categorical_format="{name}[{category}]",
     )
 
@@ -762,7 +782,8 @@ def _fit_coordinate_descent(df, h_start, w_start, c_start, **kwargs):
     # ---- h, w warm-start (same format as freeze_c=True) ------------------
     if h_start is not None and w_start is not None:
         start_params, _, _ = h_w_to_glum_coef(
-            h_start, w_start,
+            h_start,
+            w_start,
             levels_i=categories_dict["i"],
             levels_j=categories_dict["j"],
         )
@@ -777,6 +798,7 @@ def _fit_coordinate_descent(df, h_start, w_start, c_start, **kwargs):
     alpha = kwargs.get("alpha", 1.0)
     l1_ratio = kwargs.get("l1_ratio", 0)
     from src.destriping.GLUM.penalties import P_hw_only_from_df
+
     P2_mask = P_hw_only_from_df(df, freeze_c=True)
 
     sample_weight = np.ones(len(y), dtype=np.float64)
@@ -784,7 +806,12 @@ def _fit_coordinate_descent(df, h_start, w_start, c_start, **kwargs):
 
     # ---- standardize (matching glum) ------------------------------------
     X_std, col_means, col_stds, P2, coef, sample_weight = _standardize_and_prepare(
-        X_tabmat, P2_mask, sample_weight, alpha, l1_ratio, start_params,
+        X_tabmat,
+        P2_mask,
+        sample_weight,
+        alpha,
+        l1_ratio,
+        start_params,
     )
 
     # ---- run coordinate descent solver -----------------------------------
@@ -828,8 +855,11 @@ def _fit_coordinate_descent(df, h_start, w_start, c_start, **kwargs):
     )
 
     h_hat, w_hat, c_hat = glum_coef_to_hwc_frozen_c(
-        coef_hw, intercept, feature_names,
-        fitted_c, dropped_levels_dict,
+        coef_hw,
+        intercept,
+        feature_names,
+        fitted_c,
+        dropped_levels_dict,
     )
 
     return h_hat, w_hat, c_hat, regressor
@@ -850,7 +880,8 @@ def _fit_lbfgs_control(df, h_start, w_start, c_start, freeze_c, **kwargs):
     dropped_levels_dict = {key: cats[0] for key, cats in categories_dict.items()}
 
     X_tabmat = tm.from_pandas(
-        X_df, drop_first=True,
+        X_df,
+        drop_first=True,
         categorical_format="{name}[{category}]",
     )
 
@@ -866,7 +897,8 @@ def _fit_lbfgs_control(df, h_start, w_start, c_start, freeze_c, **kwargs):
     if freeze_c:
         if h_start is not None and w_start is not None:
             start_params, _, _ = h_w_to_glum_coef(
-                h_start, w_start,
+                h_start,
+                w_start,
                 levels_i=categories_dict["i"],
                 levels_j=categories_dict["j"],
             )
@@ -875,7 +907,9 @@ def _fit_lbfgs_control(df, h_start, w_start, c_start, freeze_c, **kwargs):
     else:
         if h_start is not None and w_start is not None and c_start is not None:
             start_params, _, _ = h_w_c_to_glum_coef(
-                h_start, w_start, c_start,
+                h_start,
+                w_start,
+                c_start,
                 levels_i=categories_dict["i"],
                 levels_j=categories_dict["j"],
                 levels_p=categories_dict["p"],
@@ -891,6 +925,7 @@ def _fit_lbfgs_control(df, h_start, w_start, c_start, freeze_c, **kwargs):
     P2_mask = kwargs.get("P2")
     if P2_mask is None:
         from src.destriping.GLUM.penalties import P_hw_only_from_df
+
         P2_mask = P_hw_only_from_df(df, freeze_c=freeze_c)
 
     sample_weight = np.ones(len(y), dtype=np.float64)
@@ -898,7 +933,12 @@ def _fit_lbfgs_control(df, h_start, w_start, c_start, freeze_c, **kwargs):
 
     # ---- standardize (matching glum) ------------------------------------
     X_std, col_means, col_stds, P2, coef, sample_weight = _standardize_and_prepare(
-        X_tabmat, P2_mask, sample_weight, alpha, l1_ratio, start_params,
+        X_tabmat,
+        P2_mask,
+        sample_weight,
+        alpha,
+        l1_ratio,
+        start_params,
     )
 
     coef_out, n_iter, _, _ = lbfgs_control_solver(
@@ -934,12 +974,17 @@ def _fit_lbfgs_control(df, h_start, w_start, c_start, freeze_c, **kwargs):
 
     if freeze_c:
         h_hat, w_hat, c_hat = glum_coef_to_hwc_frozen_c(
-            coef_features, intercept, feature_names,
-            c_start, dropped_levels_dict,
+            coef_features,
+            intercept,
+            feature_names,
+            c_start,
+            dropped_levels_dict,
         )
     else:
         h_hat, w_hat, c_hat = glum_coef_to_hwc(
-            coef_features, intercept, feature_names,
+            coef_features,
+            intercept,
+            feature_names,
             dropped_levels_dict,
         )
 

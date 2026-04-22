@@ -142,7 +142,7 @@ def save_matrix_row(row, original_data, save_dir, fill_nans_from_original=False)
         original_n_counts = original_data.obs.loc[intersect_indices, "n_counts"]
         inf_indices = np.isinf(destriped_data_counts_.values)
         nan_indices = np.isnan(destriped_data_counts_.values)
-        nan_inf_indices = inf_indices | nan_indices 
+        nan_inf_indices = inf_indices | nan_indices
         destriped_data_counts_.loc[nan_inf_indices] = original_n_counts.loc[
             nan_inf_indices
         ]
@@ -238,9 +238,7 @@ def rotate_labels(g):
         ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
 
 
-def difference_between_smoothed_curves(
-    df, comp_keys, reference_keys, save_dir, k=100
-):
+def difference_between_smoothed_curves(df, comp_keys, reference_keys, save_dir, k=100):
     # calculates both cosine and normalized euclidean differences
     # between the comp_keys and the references_keys
 
@@ -274,11 +272,13 @@ def difference_between_smoothed_curves(
                         "ref": ref,
                         "comp": comp,
                     }
-                    results.append({
-                        **base_dict,
-                        "metric": "cosine",
-                        "difference": cosine(smoothed_line_ref, smoothed_line_comp),
-                    })
+                    results.append(
+                        {
+                            **base_dict,
+                            "metric": "cosine",
+                            "difference": cosine(smoothed_line_ref, smoothed_line_comp),
+                        }
+                    )
                     results.append(
                         {
                             **base_dict,
@@ -308,7 +308,9 @@ def difference_between_smoothed_curves(
     results_df = pd.concat([results_df, new], ignore_index=True)
     results_df.to_csv(save_dir / "statistics_global_structure.csv", index=False)
 
-    for (operation_name, metric), df_group in results_df.groupby(["operation_name", "metric"]):
+    for (operation_name, metric), df_group in results_df.groupby(
+        ["operation_name", "metric"]
+    ):
         g = sns.catplot(
             kind="strip",
             x="comp",
@@ -382,7 +384,7 @@ def striping_intensity_cyto(matrix, cyto_select, axis, normalized=False):
         N = np.sqrt(matrix.shape[axis] - 1) * np.nanmean(matrix[cyto_select])
     else:
         N = np.sqrt(matrix.shape[axis] - 1)
-    
+
     if (I == 0) and (N == 0):
         return 0
     else:
@@ -481,7 +483,9 @@ def plots_striping_intensity_statistics(df_striping_intensity, output_folder):
     plt.close()
 
 
-def save_n_counts_matrices(df_results, index_oi_dict, output_folder, fill_nans_from_original=False):
+def save_n_counts_matrices(
+    df_results, index_oi_dict, output_folder, fill_nans_from_original=False
+):
     index_oi_series = pd.Series(index_oi_dict)
     index_oi_series.to_csv(output_folder / "index_oi.csv")
     # download original data
@@ -494,7 +498,12 @@ def save_n_counts_matrices(df_results, index_oi_dict, output_folder, fill_nans_f
 
     for name, index in index_oi_series.items():
         print(name, index)
-        save_matrix_row(df_results.loc[index], original_data, output_folder, fill_nans_from_original=fill_nans_from_original)
+        save_matrix_row(
+            df_results.loc[index],
+            original_data,
+            output_folder,
+            fill_nans_from_original=fill_nans_from_original,
+        )
         new_df_list.append(
             {
                 "name": name,

@@ -34,17 +34,18 @@ logger = logging.getLogger(__name__)
 # NOTE: transpose_matvec ACCUMULATES into out, so buf must be zeroed first.
 # ---------------------------------------------------------------------------
 
+
 def _update_c_poisson(coef, X, offset, P_cat, n_p, y, log_c, _buf1, _buf2, P2_c=None):
     """Closed-form  c_p = sum(k) / sum(h·w)  for Poisson."""
     if P2_c is not None and np.any(P2_c > 0):
         raise NotImplementedError(
             "Poisson closed-form c update not supported with L2 penalty on c."
         )
-    eta_hw = coef[0] + X @ coef[1:]       # tabmat matvec, O(n)
+    eta_hw = coef[0] + X @ coef[1:]  # tabmat matvec, O(n)
     hw = np.exp(eta_hw)
 
     _buf1[:] = 0.0
-    P_cat.transpose_matvec(y, out=_buf1)   # sum_k per group
+    P_cat.transpose_matvec(y, out=_buf1)  # sum_k per group
     _buf2[:] = 0.0
     P_cat.transpose_matvec(hw, out=_buf2)  # sum_hw per group
 
@@ -80,6 +81,7 @@ def _update_c_nb(coef, X, offset, P_cat, n_p, y, theta, log_c, _buf1, _buf2, P2_
 # ---------------------------------------------------------------------------
 # Main solver  (same signature as glum._solvers._lbfgs_solver + c-update args)
 # ---------------------------------------------------------------------------
+
 
 def coordinate_descent_lbfgs_solver(
     coef,
@@ -131,7 +133,7 @@ def coordinate_descent_lbfgs_solver(
         P2=P2,
         family=family,
         link=link,
-        offset=offset,          # captured by reference → sees in-place updates
+        offset=offset,  # captured by reference → sees in-place updates
     )
 
     # --- pre-allocate buffers for c-update aggregation --------------------
@@ -164,9 +166,24 @@ def coordinate_descent_lbfgs_solver(
 
     while True:
         _lbfgsb.setulb(
-            m, x, low_bnd, upper_bnd, nbd, f, g,
-            factr, tol, wa, iwa, task, iprint,
-            csave, lsave, isave, dsave, maxls,
+            m,
+            x,
+            low_bnd,
+            upper_bnd,
+            nbd,
+            f,
+            g,
+            factr,
+            tol,
+            wa,
+            iwa,
+            task,
+            iprint,
+            csave,
+            lsave,
+            isave,
+            dsave,
+            maxls,
         )
         task_str = task.tobytes()
 
@@ -181,9 +198,23 @@ def coordinate_descent_lbfgs_solver(
             # ---- c update (mutates offset in place) ----------------------
             for _ in range(n_c_updates):
                 if theta is None:
-                    _update_c_poisson(x, X, offset, P_cat, n_p, y, log_c, _buf1, _buf2, P2_c=P2_c)
+                    _update_c_poisson(
+                        x, X, offset, P_cat, n_p, y, log_c, _buf1, _buf2, P2_c=P2_c
+                    )
                 else:
-                    _update_c_nb(x, X, offset, P_cat, n_p, y, theta, log_c, _buf1, _buf2, P2_c=P2_c)
+                    _update_c_nb(
+                        x,
+                        X,
+                        offset,
+                        P_cat,
+                        n_p,
+                        y,
+                        theta,
+                        log_c,
+                        _buf1,
+                        _buf2,
+                        P2_c=P2_c,
+                    )
 
             if n_iterations >= max_iter:
                 task[:] = "STOP: TOTAL NO. of ITERATIONS REACHED LIMIT"

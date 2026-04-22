@@ -85,4 +85,5 @@ def get_status_dict(x: pd.Series):
         s = pd.Series(dict_)
         s["status_dict"] = dict_
         return s
-    else: return pd.Series({})
+    else:
+        return pd.Series({})

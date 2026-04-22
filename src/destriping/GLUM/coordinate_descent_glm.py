@@ -27,6 +27,7 @@ from src.destriping.GLUM.fit import (
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _categories_from_X(X):
     """Extract category lists from a categorized DataFrame."""
     cats = {}
@@ -51,8 +52,7 @@ def _coef_to_hwc(coef, intercept, feature_names, categories_dict):
     return glum_coef_to_hwc(coef, intercept, feature_names, dropped_levels_dict)
 
 
-def _build_full_coef(intercept_hw, coef_hw, log_c,
-                     categories_dict, feature_names_ij):
+def _build_full_coef(intercept_hw, coef_hw, log_c, categories_dict, feature_names_ij):
     """Reconstruct full (p,i,j) glum coef from h,w coef and fitted log_c.
 
     Returns (intercept, coef, feature_names) in glum format.
@@ -78,20 +78,37 @@ def _build_full_coef(intercept_hw, coef_hw, log_c,
 # Base class with shared init / get_params / set_params
 # ---------------------------------------------------------------------------
 
+
 class _BaseCustomRegressor:
     """Base for CoordinateDescentRegressor and LBFGSControlRegressor."""
 
     _init_params = [
-        "family", "alpha", "P2", "l1_ratio", "link",
-        "fit_intercept", "drop_first", "start_params", "max_iter",
+        "family",
+        "alpha",
+        "P2",
+        "l1_ratio",
+        "link",
+        "fit_intercept",
+        "drop_first",
+        "start_params",
+        "max_iter",
         "n_c_updates",
     ]
 
-    def __init__(self, family=None, alpha=1.0, P2="identity",
-                 l1_ratio=0, link="log", fit_intercept=True,
-                 drop_first=True, start_params=None, max_iter=100_000,
-                 n_c_updates=1,
-                 **kwargs):
+    def __init__(
+        self,
+        family=None,
+        alpha=1.0,
+        P2="identity",
+        l1_ratio=0,
+        link="log",
+        fit_intercept=True,
+        drop_first=True,
+        start_params=None,
+        max_iter=100_000,
+        n_c_updates=1,
+        **kwargs,
+    ):
         self.family = family
         self.alpha = alpha
         self.P2 = P2
@@ -123,6 +140,7 @@ class _BaseCustomRegressor:
     @property
     def _family_instance(self):
         from glum._glm import get_family
+
         return get_family(self.family) if isinstance(self.family, str) else self.family
 
     _ETA_CLIP = 30.0
@@ -132,7 +150,8 @@ class _BaseCustomRegressor:
         categories_dict = _categories_from_X(X)
         categoricals = [c for c in ["p", "i", "j"] if c in categories_dict]
         X_tabmat = tm.from_pandas(
-            X[categoricals], drop_first=True,
+            X[categoricals],
+            drop_first=True,
             categorical_format="{name}[{category}]",
         )
         eta = self.intercept_ + X_tabmat @ self.coef_
@@ -145,6 +164,7 @@ class _BaseCustomRegressor:
 # ---------------------------------------------------------------------------
 # CoordinateDescentRegressor
 # ---------------------------------------------------------------------------
+
 
 class CoordinateDescentRegressor(_BaseCustomRegressor):
     """LBFGS on (h, w) with analytical c update — sklearn-compatible interface.
@@ -161,7 +181,9 @@ class CoordinateDescentRegressor(_BaseCustomRegressor):
         categoricals_pij = [c for c in ["p", "i", "j"] if c in categories_dict]
 
         # ---- split: (i,j) for LBFGS, p for c update -----------------------
-        assert "p" in categories_dict, "X must contain a 'p' column for coordinate descent."
+        assert (
+            "p" in categories_dict
+        ), "X must contain a 'p' column for coordinate descent."
         levels_p = categories_dict["p"]
         levels_i = categories_dict["i"]
         levels_j = categories_dict["j"]
@@ -173,30 +195,37 @@ class CoordinateDescentRegressor(_BaseCustomRegressor):
 
         # tabmat CategoricalMatrix for fast group-sum / broadcast in c-update
         import pandas as pd
+
         p_cat_pd = pd.Categorical.from_codes(p_idx, categories=np.arange(n_p))
         P_cat = tm.CategoricalMatrix(p_cat_pd, drop_first=False)
 
         # tabmat from (i, j) only
         X_ij = X[["i", "j"]]
         X_tabmat = tm.from_pandas(
-            X_ij, drop_first=True,
+            X_ij,
+            drop_first=True,
             categorical_format="{name}[{category}]",
         )
 
         # ---- family / link --------------------------------------------------
-        family = get_family(self.family) if isinstance(self.family, str) else self.family
+        family = (
+            get_family(self.family) if isinstance(self.family, str) else self.family
+        )
         link = get_link("log", family)
         theta = getattr(family, "theta", None)
 
         # ---- derive h_start, w_start, c_start from start_params ------------
         if self.start_params is not None:
             feature_names_pij = _feature_names_from_categories(
-                categories_dict, categoricals_pij,
+                categories_dict,
+                categoricals_pij,
             )
             dropped_pij = {k: cats[0] for k, cats in categories_dict.items()}
             h_start, w_start, c_start = _coef_to_hwc(
-                self.start_params[1:], self.start_params[0],
-                feature_names_pij, categories_dict,
+                self.start_params[1:],
+                self.start_params[0],
+                feature_names_pij,
+                categories_dict,
             )
         else:
             h_start, w_start, c_start = None, None, None
@@ -214,8 +243,10 @@ class CoordinateDescentRegressor(_BaseCustomRegressor):
         # ---- h, w start params for (i, j) LBFGS ----------------------------
         if h_start is not None and w_start is not None:
             hw_start, _, _ = h_w_to_glum_coef(
-                h_start, w_start,
-                levels_i=levels_i, levels_j=levels_j,
+                h_start,
+                w_start,
+                levels_i=levels_i,
+                levels_j=levels_j,
             )
         else:
             hw_start = None
@@ -226,7 +257,9 @@ class CoordinateDescentRegressor(_BaseCustomRegressor):
         n_p_coefs = len(levels_p) - 1
         if isinstance(self.P2, np.ndarray):
             # P2 is for (p,i,j) — extract parts
-            P2_c_mask = np.concatenate([[0.0], self.P2[:n_p_coefs]])  # len n_p, 0 for dropped
+            P2_c_mask = np.concatenate(
+                [[0.0], self.P2[:n_p_coefs]]
+            )  # len n_p, 0 for dropped
             P2_mask = self.P2[n_p_coefs:]
         elif self.P2 == "identity":
             P2_c_mask = np.ones(n_p, dtype=np.float64)
@@ -241,14 +274,21 @@ class CoordinateDescentRegressor(_BaseCustomRegressor):
         else:
             sample_weight = np.asarray(sample_weight, dtype=np.float64)
 
-        assert np.allclose(sample_weight, 1.0), \
-            "Coordinate descent c penalty assumes uniform sample weights."
-        assert self.l1_ratio == 0, \
-            "L1 penalty not supported in coordinate descent (l1_ratio must be 0)."
+        assert np.allclose(
+            sample_weight, 1.0
+        ), "Coordinate descent c penalty assumes uniform sample weights."
+        assert (
+            self.l1_ratio == 0
+        ), "L1 penalty not supported in coordinate descent (l1_ratio must be 0)."
 
         # ---- standardize and prepare ----------------------------------------
         X_std, col_means, col_stds, P2, coef, sample_weight = _standardize_and_prepare(
-            X_tabmat, P2_mask, sample_weight, self.alpha, self.l1_ratio, hw_start,
+            X_tabmat,
+            P2_mask,
+            sample_weight,
+            self.alpha,
+            self.l1_ratio,
+            hw_start,
         )
 
         # ---- P2_c scaling (no column standardization, uniform weights) ------
@@ -282,12 +322,17 @@ class CoordinateDescentRegressor(_BaseCustomRegressor):
 
         # ---- build feature names for (i,j) ----------------------------------
         feature_names_ij = _feature_names_from_categories(
-            {"i": levels_i, "j": levels_j}, ["i", "j"],
+            {"i": levels_i, "j": levels_j},
+            ["i", "j"],
         )
 
         # ---- reconstruct full (p,i,j) coef ----------------------------------
         self.intercept_, self.coef_, self.feature_names_ = _build_full_coef(
-            intercept_hw, coef_hw, log_c, categories_dict, feature_names_ij,
+            intercept_hw,
+            coef_hw,
+            log_c,
+            categories_dict,
+            feature_names_ij,
         )
         self.n_iter_ = n_iter
         self.family = family
@@ -297,6 +342,7 @@ class CoordinateDescentRegressor(_BaseCustomRegressor):
 # ---------------------------------------------------------------------------
 # LBFGSControlRegressor
 # ---------------------------------------------------------------------------
+
 
 class LBFGSControlRegressor(_BaseCustomRegressor):
     """Plain LBFGS on all variables (p, i, j) — sklearn-compatible interface.
@@ -314,12 +360,15 @@ class LBFGSControlRegressor(_BaseCustomRegressor):
 
         # ---- build tabmat from all columns -----------------------------------
         X_tabmat = tm.from_pandas(
-            X[categoricals], drop_first=True,
+            X[categoricals],
+            drop_first=True,
             categorical_format="{name}[{category}]",
         )
 
         # ---- family / link ---------------------------------------------------
-        family = get_family(self.family) if isinstance(self.family, str) else self.family
+        family = (
+            get_family(self.family) if isinstance(self.family, str) else self.family
+        )
         link = get_link("log", family)
 
         # ---- P2 --------------------------------------------------------------
@@ -343,7 +392,11 @@ class LBFGSControlRegressor(_BaseCustomRegressor):
 
         # ---- standardize and prepare ----------------------------------------
         X_std, col_means, col_stds, P2, coef, sample_weight = _standardize_and_prepare(
-            X_tabmat, P2_mask, sample_weight, self.alpha, self.l1_ratio,
+            X_tabmat,
+            P2_mask,
+            sample_weight,
+            self.alpha,
+            self.l1_ratio,
             self.start_params,
         )
 
@@ -366,7 +419,9 @@ class LBFGSControlRegressor(_BaseCustomRegressor):
         self.intercept_, self.coef_ = _unstandardize_coef(coef_out, col_means, col_stds)
 
         # ---- feature names ---------------------------------------------------
-        self.feature_names_ = _feature_names_from_categories(categories_dict, categoricals)
+        self.feature_names_ = _feature_names_from_categories(
+            categories_dict, categoricals
+        )
         self.n_iter_ = n_iter
         self.family = family
         return self

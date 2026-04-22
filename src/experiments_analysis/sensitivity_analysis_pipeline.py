@@ -46,7 +46,9 @@ from src.experiments_analysis.analysis_plots import (
     striping_intensity_quantification_region_barplot,
     _annotate_na_bars,
 )
-from src.experiments_analysis.analysis_simulated_data_pipeline import analysis as _upstream_analysis
+from src.experiments_analysis.analysis_simulated_data_pipeline import (
+    analysis as _upstream_analysis,
+)
 
 
 def make_config(baselines_path: str, sensitivity_runs_path: str) -> dict:
@@ -74,6 +76,8 @@ def analysis(
         synthetic_data=synthetic_data,
         fill_nans_from_original=False,
     )
+
+
 from src.experiments_analysis.plots_ismb import (
     color_dict as _base_color_dict,
     model_name_replacement_dict as _model_name_replacement_dict,
@@ -122,10 +126,11 @@ _RENAME_METRICS = {
 }
 
 # Display order: sensitivity runs (100% → 0.1%) then references
-METHODS_ORDER = (
-    [_pct_label(pct) for pct in sorted(PERCENTAGES, reverse=True)]
-    + ["original", "b2c", "b2c-sym"]
-)
+METHODS_ORDER = [_pct_label(pct) for pct in sorted(PERCENTAGES, reverse=True)] + [
+    "original",
+    "b2c",
+    "b2c-sym",
+]
 
 _SEED_MARKERS = ["o", "s", "D", "^", "v"]  # one marker per seed
 
@@ -148,10 +153,14 @@ _BASELINES_ORDER = [
     "b2c-sym",
     "ours",
     "ours (collapse label)",
-#    "b2c-sym-c_mean",
+    #    "b2c-sym-c_mean",
 ]
 
-TO_PLOT_REMOVE = ["GT_poisson_sol", "expected_spatial_data_wo_stripes", "b2c-sym-c_mean"]
+TO_PLOT_REMOVE = [
+    "GT_poisson_sol",
+    "expected_spatial_data_wo_stripes",
+    "b2c-sym-c_mean",
+]
 
 # ---------------------------------------------------------------------------
 # Color helpers
@@ -256,17 +265,27 @@ def _extract_seed(raw_name: str) -> int | None:
 
 def _build_seed_run_replacement(global_dir_path) -> dict:
     """Build a name-replacement dict for seed-prefixed run names."""
-    csv_path = P(global_dir_path) / "striping_intensity" / "striping_intensity_statistics.csv"
+    csv_path = (
+        P(global_dir_path) / "striping_intensity" / "striping_intensity_statistics.csv"
+    )
     df = pd.read_csv(csv_path)
-    return {name: _display_name(name) for name in df["name"].tolist() if _display_name(name) != name}
+    return {
+        name: _display_name(name)
+        for name in df["name"].tolist()
+        if _display_name(name) != name
+    }
 
 
-def _infer_to_plot_for_seeds(global_dir_path, seeds, model_name_replacement_dict, seed_repl: dict | None = None) -> list:
+def _infer_to_plot_for_seeds(
+    global_dir_path, seeds, model_name_replacement_dict, seed_repl: dict | None = None
+) -> list:
     """Return display names to plot: seed-prefixed runs for given seeds + all baselines."""
     if seed_repl is None:
         seed_repl = _build_seed_run_replacement(global_dir_path)
     augmented = {**model_name_replacement_dict, **seed_repl}
-    csv_path = P(global_dir_path) / "striping_intensity" / "striping_intensity_statistics.csv"
+    csv_path = (
+        P(global_dir_path) / "striping_intensity" / "striping_intensity_statistics.csv"
+    )
     df = pd.read_csv(csv_path)
     names = df["name"].replace(augmented).tolist()
     seed_strs = [str(s) for s in (seeds or [])]
@@ -274,13 +293,13 @@ def _infer_to_plot_for_seeds(global_dir_path, seeds, model_name_replacement_dict
     for raw_name, display_name in zip(df["name"].tolist(), names):
         m = re.match(r"seed_([a-zA-Z0-9_]+)__", raw_name)
         if m:
-            if seeds is None: #all seeds by default
+            if seeds is None:  # all seeds by default
                 result.append(display_name)
             else:
                 if seed_strs and m.group(1) in seed_strs:
                     result.append(display_name)
         else:
-            if not(display_name in TO_PLOT_REMOVE):
+            if not (display_name in TO_PLOT_REMOVE):
                 result.append(display_name)
     # Preserve insertion order, deduplicate
     seen = set()
@@ -292,7 +311,7 @@ def _infer_to_plot_for_seeds(global_dir_path, seeds, model_name_replacement_dict
 # ---------------------------------------------------------------------------
 
 
-def run_sensitivity_analysis_multi_seed(cfg: dict, synthetic_data = False) -> None:
+def run_sensitivity_analysis_multi_seed(cfg: dict, synthetic_data=False) -> None:
     """Run a single analysis over all seeds from a merged multi-seed config (simulated data).
 
     For each seed, prefixes run names as ``seed_{seed}__{name}``. Shared
@@ -315,7 +334,7 @@ def run_sensitivity_analysis_multi_seed(cfg: dict, synthetic_data = False) -> No
         dividing_by_ratio_baselines=cfg["dividing_by_ratio_baselines"],
         not_factor_based_baseline=cfg["not_factor_based_baseline"],
         supp_baselines_dir=cfg.get("supp_baselines_dir"),
-        synthetic_data=synthetic_data
+        synthetic_data=synthetic_data,
     )
 
 
@@ -331,22 +350,30 @@ def print_chosen_alphas(runs_path: str) -> pd.DataFrame:
                 glm = pickle.load(open(P(run_dir) / "glm.pkl", "rb"))
                 r = glm.regressor
                 full_grid = sorted(r.param_grid["alpha"])
-                rows.append({
-                    "run": run_key, "seed": seed, "alpha": r.alpha_,
-                    "grid_min": full_grid[0], "grid_max": full_grid[-1],
-                })
+                rows.append(
+                    {
+                        "run": run_key,
+                        "seed": seed,
+                        "alpha": r.alpha_,
+                        "grid_min": full_grid[0],
+                        "grid_max": full_grid[-1],
+                    }
+                )
             except Exception:
                 pass
     alpha_df = pd.DataFrame(rows)
     alpha_df["boundary_side"] = alpha_df.apply(
-        lambda r: "MIN" if r["alpha"] == r["grid_min"]
+        lambda r: "MIN"
+        if r["alpha"] == r["grid_min"]
         else ("MAX" if r["alpha"] == r["grid_max"] else "ok"),
         axis=1,
     )
     print("Chosen alpha:")
     print(alpha_df.pivot(index="run", columns="seed", values="alpha").to_string())
     print("\nBoundary hit wrt full CV grid (MIN / MAX / ok):")
-    print(alpha_df.pivot(index="run", columns="seed", values="boundary_side").to_string())
+    print(
+        alpha_df.pivot(index="run", columns="seed", values="boundary_side").to_string()
+    )
     return alpha_df
 
 
@@ -361,9 +388,7 @@ def build_metrics_df_multi(output_dirs: list) -> pd.DataFrame:
     Returns a DataFrame with one row per (method, seed), suitable for
     seaborn's errorbar='sd' to show std across subsampling seeds.
     """
-    return pd.concat(
-        [build_metrics_df(d) for d in output_dirs], ignore_index=True
-    )
+    return pd.concat([build_metrics_df(d) for d in output_dirs], ignore_index=True)
 
 
 def build_metrics_df(output_dir: str) -> pd.DataFrame:
@@ -393,7 +418,6 @@ def build_metrics_df(output_dir: str) -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 # Plotting
 # ---------------------------------------------------------------------------
-
 
 
 def sensitivity_barplot(
@@ -499,11 +523,13 @@ def compute_tsne_log_stripe_factors(
         w = sol.w.reindex(ref_w_idx).fillna(1.0) if ref_w_idx is not None else sol.w
         log_h = np.log(h.values + EPS)
         log_w = np.log(w.values + EPS)
-        records.append({
-            "name": row["name"],
-            "seed": seed,
-            "features": np.concatenate([log_h, log_w]),
-        })
+        records.append(
+            {
+                "name": row["name"],
+                "seed": seed,
+                "features": np.concatenate([log_h, log_w]),
+            }
+        )
 
     X = np.stack([r["features"] for r in records])
     labels = [r["name"] for r in records]
@@ -565,11 +591,15 @@ def compute_log_stripe_distance_to_ours(
         sol = Sol.load(row["poisson_sol_path"])
         h = sol.h.reindex(ref_h_idx).fillna(1.0) if ref_h_idx is not None else sol.h
         w = sol.w.reindex(ref_w_idx).fillna(1.0) if ref_w_idx is not None else sol.w
-        records.append({
-            "name": _display_name(row["name"]),
-            "seed": seed,
-            "features": np.concatenate([np.log(h.values + EPS), np.log(w.values + EPS)]),
-        })
+        records.append(
+            {
+                "name": _display_name(row["name"]),
+                "seed": seed,
+                "features": np.concatenate(
+                    [np.log(h.values + EPS), np.log(w.values + EPS)]
+                ),
+            }
+        )
 
     try:
         ref_vec = next(r["features"] for r in records if r["name"] == "ours")
@@ -579,7 +609,11 @@ def compute_log_stripe_distance_to_ours(
     dim = len(ref_vec)
     rows = []
     for r in records:
-        dist = 0.0 if r["name"] == "ours" else np.linalg.norm(r["features"] - ref_vec) / np.sqrt(dim)
+        dist = (
+            0.0
+            if r["name"] == "ours"
+            else np.linalg.norm(r["features"] - ref_vec) / np.sqrt(dim)
+        )
         rows.append({"name": r["name"], "seed": r["seed"], "distance": dist})
 
     df = pd.DataFrame(rows)
@@ -617,7 +651,11 @@ def plot_log_stripe_distance_to_ours(
     ordered_names, aug_dict, color_dict = get_figure_params(
         global_structure_analysis_folder, type, seeds, to_plot
     )
-    agg = agg.set_index("name").loc[[n for n in ordered_names if n in agg["name"].values]].reset_index()
+    agg = (
+        agg.set_index("name")
+        .loc[[n for n in ordered_names if n in agg["name"].values]]
+        .reset_index()
+    )
     colors = [color_dict.get(n, "gray") for n in agg["name"]]
 
     fig, ax = plt.subplots(figsize=(5, 3.5))
@@ -679,7 +717,9 @@ def plot_tsne_log_stripe_factors(
     return fig
 
 
-def order(to_plot: list, type: str | None = None, baselines_first: bool = False) -> list:
+def order(
+    to_plot: list, type: str | None = None, baselines_first: bool = False
+) -> list:
     """Order to_plot: ours, then sensitivity runs (less → more modified), then other baselines.
 
     Sensitivity runs are names matching ``ours (p=`` — sorted by their p value
@@ -690,7 +730,9 @@ def order(to_plot: list, type: str | None = None, baselines_first: bool = False)
     then ours, then sensitivity runs.
     """
     seed_names = [n for n in to_plot if _SENSITIVITY_PATTERN.match(n)]
-    baseline_names = [n for n in to_plot if (not _SENSITIVITY_PATTERN.match(n)) and (n != "ours")]
+    baseline_names = [
+        n for n in to_plot if (not _SENSITIVITY_PATTERN.match(n)) and (n != "ours")
+    ]
     reverse_sort = not _HIGHER_P_LIGHTER.get(type, False)  # subsample: high p first
     seed_names = sorted(
         seed_names,
@@ -699,14 +741,16 @@ def order(to_plot: list, type: str | None = None, baselines_first: bool = False)
     )
     baseline_names = sorted(
         baseline_names,
-        key=lambda n: _BASELINES_ORDER.index(n) if n in _BASELINES_ORDER else len(_BASELINES_ORDER),
+        key=lambda n: _BASELINES_ORDER.index(n)
+        if n in _BASELINES_ORDER
+        else len(_BASELINES_ORDER),
     )
 
     merge_only_baselines = ["b2c-sym-c_mean", "ours (collapse label)"]
     if type != "merge":
-        baseline_names = [e for e in baseline_names if not(e in merge_only_baselines)]
+        baseline_names = [e for e in baseline_names if not (e in merge_only_baselines)]
 
-    ours_list = ["ours" ] if ("ours" in to_plot) else []
+    ours_list = ["ours"] if ("ours" in to_plot) else []
 
     if baselines_first:
         return baseline_names + ours_list + seed_names
@@ -759,7 +803,14 @@ def global_structure_plot_all_methods(
     )
     plt.show()
 
-def get_figure_params(global_structure_analysis_folder, type, seeds, to_plot, baselines_first: bool = False):
+
+def get_figure_params(
+    global_structure_analysis_folder,
+    type,
+    seeds,
+    to_plot,
+    baselines_first: bool = False,
+):
     from src.experiments_analysis.plots_ismb import (
         model_name_replacement_dict,
     )
@@ -820,14 +871,14 @@ def _load_striping_intensity_plot_df(
     return df
 
 
-def barplot_global_structure_alteration_(global_structure_analysis_folder,
+def barplot_global_structure_alteration_(
+    global_structure_analysis_folder,
     output_dir,
     type: str | None = None,
     seeds: list | None = None,
     to_plot: list | None = None,
-    ax = None
-  ):
-    
+    ax=None,
+):
     to_plot, aug_dict, color_dict = get_figure_params(
         global_structure_analysis_folder, type, seeds, to_plot
     )
@@ -838,7 +889,7 @@ def barplot_global_structure_alteration_(global_structure_analysis_folder,
         aug_dict,
         to_plot,
         colors=color_dict,
-        ax=ax
+        ax=ax,
     )
     plt.tight_layout()
     return axis
@@ -864,8 +915,10 @@ def barplot_striping_intensity(
         cyto=cyto,
     )
     if df.empty:
-        raise ValueError("No striping-intensity results available for the requested plot.")
-    #plot_order = [name for name in to_plot if name != "original"] if to_plot is not None else None
+        raise ValueError(
+            "No striping-intensity results available for the requested plot."
+        )
+    # plot_order = [name for name in to_plot if name != "original"] if to_plot is not None else None
 
     hue = "model" if color_dict is not None else None
     palette = color_dict if color_dict is not None else None
@@ -915,7 +968,7 @@ def compromise_plot_with_errorbars(
     to_plot: list | None = None,
     alpha: float = 0.8,
     cyto_all: list | None = None,
-    ax = None
+    ax=None,
 ):
     """Compromise scatter plot with mean±std error bars across seeds.
 
@@ -935,8 +988,8 @@ def compromise_plot_with_errorbars(
         annotation=False,
         colors=color_dict,
         alpha=alpha,
-        cyto_all = cyto_all,
-        ax = ax
+        cyto_all=cyto_all,
+        ax=ax,
     )
 
     return ax
@@ -984,7 +1037,9 @@ def load_cell_size_inputs(cfg: dict) -> tuple:
         subdirs[p_merge_float] = _get_merge_subdirs(merging_run_dir)[p_merge_float]
 
     if merging_run_dir is None:
-        raise ValueError("No merge run found in cfg (all entries lack merging_run_dir).")
+        raise ValueError(
+            "No merge run found in cfg (all entries lack merging_run_dir)."
+        )
 
     merging_cfg = yaml.safe_load((merging_run_dir / ".hydra/config.yaml").read_text())
     path_data = merging_cfg["dataset"]["path_data"]
@@ -1001,11 +1056,16 @@ def load_cell_size_inputs(cfg: dict) -> tuple:
     rows = []
     for p, merge_dir in subdirs.items():
         meta = json.loads((merge_dir / "metadata.json").read_text())
-        pct_merged = (meta["n_nuclei_before"] - meta["n_nuclei_after"]) / meta["n_nuclei_before"] * 100
+        pct_merged = (
+            (meta["n_nuclei_before"] - meta["n_nuclei_after"])
+            / meta["n_nuclei_before"]
+            * 100
+        )
         rows.append({"p": p, "pct_merged": pct_merged})
     stats_df = pd.DataFrame(rows)
 
     return labels_by_p, coords, stats_df
+
 
 ##### FINAL PLOTS
 
@@ -1024,7 +1084,8 @@ def arrange_legend_2_columns(handles, labels):
 
 
 def panel_global_structure_alteration_striping_intensity(
-    global_structure_analysis_folder, experiment_type, cyto_all = True):
+    global_structure_analysis_folder, experiment_type, cyto_all=True
+):
     from matplotlib.gridspec import GridSpec
 
     fig = plt.figure(figsize=(5 / 0.8, 2.4 * 3))
@@ -1069,7 +1130,6 @@ def panel_global_structure_alteration_striping_intensity(
 
 
 def real_data_plots(output_dir, figures_output_dir, experiment_type):
-
     global_structure_analysis_folder = P(output_dir) / "global_structure_analysis"
     axes = panel_global_structure_alteration_striping_intensity(
         global_structure_analysis_folder, experiment_type
@@ -1085,7 +1145,9 @@ def real_data_plots(output_dir, figures_output_dir, experiment_type):
         output_dir=output_dir,
     )
 
-    ax = plot_log_stripe_distance_to_ours(dist_df, global_structure_analysis_folder, type=experiment_type, seeds=None)
+    ax = plot_log_stripe_distance_to_ours(
+        dist_df, global_structure_analysis_folder, type=experiment_type, seeds=None
+    )
     plt.savefig(figures_output_dir / "log_space_distance_to_ours.pdf")
     plt.show()
 
@@ -1113,7 +1175,8 @@ def _get_panel_params(output_dir, experiment_type, seed, baselines_keep=None):
     )
 
     to_plot = [
-        n for n in to_plot
+        n
+        for n in to_plot
         if _SENSITIVITY_PATTERN.match(n) or n == "ours" or n in baselines_keep
     ]
 
@@ -1146,10 +1209,10 @@ def destriped_data_panel(
 
     n_image_rows = ceil(len(to_plot) / n_cols)
 
-    #w = figsize_per_cell[0] * n_cols
+    # w = figsize_per_cell[0] * n_cols
     w = 7.009
     h = figsize_per_cell[1] * (n_image_rows + 0.8) / (figsize_per_cell[0] * n_cols) * w
-    #h = figsize_per_cell[1] * (n_image_rows + 0.8)
+    # h = figsize_per_cell[1] * (n_image_rows + 0.8)
 
     fig = plt.figure(figsize=(w, h))
     gs = gridspec.GridSpec(
@@ -1249,7 +1312,9 @@ def convergence_barplot(
     df = pd.read_csv(P(output_dir) / "poisson_summary_df.csv")
     df["display_name"] = df["name"].replace(aug_dict)
     df = df[df["display_name"].isin(to_plot)].copy()
-    df["is_converged"] = df["converged"].astype(bool) & df["theta_iter_converged_"].astype(bool)
+    df["is_converged"] = df["converged"].astype(bool) & df[
+        "theta_iter_converged_"
+    ].astype(bool)
 
     pct = df.groupby("display_name")["is_converged"].mean() * 100
     pct = pct.reindex(to_plot)
@@ -1275,7 +1340,6 @@ def convergence_barplot(
 
 
 def simulation_data_plots(output_dir, figures_output_dir, experiment_type):
-
     global_structure_analysis_folder = P(output_dir) / "global_structure_analysis"
     axes = panel_global_structure_alteration_striping_intensity(
         global_structure_analysis_folder, experiment_type, cyto_all=False
@@ -1290,11 +1354,16 @@ def simulation_data_plots(output_dir, figures_output_dir, experiment_type):
     metrics_df = build_metrics_df(output_dir)
     print(metrics_df)
 
-    fig, axes = sensitivity_barplot(metrics_df, figures_output_dir, global_structure_analysis_folder, type=experiment_type)
+    fig, axes = sensitivity_barplot(
+        metrics_df,
+        figures_output_dir,
+        global_structure_analysis_folder,
+        type=experiment_type,
+    )
     plt.show()
 
-def qualitative_plots_human_lymph_node(output_dir, figures_output_dir, experiment_type):
 
+def qualitative_plots_human_lymph_node(output_dir, figures_output_dir, experiment_type):
     # destriping panel
 
     region_slice = (slice(3100, 3250), slice(2675, 2825))

@@ -24,7 +24,7 @@ def _split_one_cell(grp: pd.DataFrame) -> pd.Series:
 
     if mask.all() or not mask.any():
         mask = np.zeros(len(rows), dtype=bool)
-        mask[len(rows) // 2:] = True
+        mask[len(rows) // 2 :] = True
 
     return pd.Series(mask, index=grp.index)
 

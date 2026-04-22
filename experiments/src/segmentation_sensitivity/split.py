@@ -46,4 +46,6 @@ def parse_config(original_root, cfg):
         with open(out_dir / "metadata.json", "w") as f:
             json.dump(metadata, f, indent=2)
 
-        print(f"p_split={p_int}%: {n_nuclei_before} → {n_nuclei_after} nuclei → {out_dir}")
+        print(
+            f"p_split={p_int}%: {n_nuclei_before} → {n_nuclei_after} nuclei → {out_dir}"
+        )

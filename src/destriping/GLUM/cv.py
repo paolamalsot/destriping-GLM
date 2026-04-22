@@ -312,13 +312,21 @@ def _reestimate_c_and_predict(glm, X_test, y_test, offset_test):
     h, w, _ = glum_coef_to_hwc(coef, intercept, feature_names, dropped_levels_dict)
 
     # Compute h_i * w_j for each val observation
-    hw = (X_test["i"].map(h).astype(float).fillna(1.0).values
-          * X_test["j"].map(w).astype(float).fillna(1.0).values)
+    hw = (
+        X_test["i"].map(h).astype(float).fillna(1.0).values
+        * X_test["j"].map(w).astype(float).fillna(1.0).values
+    )
 
     # Re-estimate c per nucleus: c_p = sum(y) / sum(h*w)
     p_vals = X_test["p"].values
-    p_unique = X_test["p"].cat.categories if hasattr(X_test["p"], "cat") else pd.unique(p_vals)
-    p_codes = X_test["p"].cat.codes.values if hasattr(X_test["p"], "cat") else pd.factorize(p_vals)[0]
+    p_unique = (
+        X_test["p"].cat.categories if hasattr(X_test["p"], "cat") else pd.unique(p_vals)
+    )
+    p_codes = (
+        X_test["p"].cat.codes.values
+        if hasattr(X_test["p"], "cat")
+        else pd.factorize(p_vals)[0]
+    )
     n_p = len(p_unique)
 
     sum_y = np.bincount(p_codes, weights=y_test, minlength=n_p)

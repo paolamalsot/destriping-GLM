@@ -149,7 +149,7 @@ def main() -> None:
         "--csv",
         action="append",
         help="Path to a destriped_summary_df.csv. Can be passed multiple times. "
-             "Defaults to DEFAULT_ANALYSIS_CSVS when omitted.",
+        "Defaults to DEFAULT_ANALYSIS_CSVS when omitted.",
     )
     args = parser.parse_args()
 

@@ -66,7 +66,7 @@ def quantile_match_nbinom(
     if np.sum(zero_selector) > 0:
         res[zero_selector] = 0
     # replace where k is zero and mu and muf are close to zero. Sometimes this create inf because of quantile=1. for k=1 and mu very small
-    eps=1e-3
+    eps = 1e-3
     zero_selector = (k == 0) & (mu < eps) & (muf < eps)
     if np.sum(zero_selector) > 0:
         res[zero_selector] = 0

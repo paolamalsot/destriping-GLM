@@ -16,10 +16,12 @@ from src.utilities.custom_imshow import custom_imshow
 from src.utilities.matplotlib_utils import pad_axes_in_points
 
 
-_METHODS_WITHOUT_STRIPE_FACTOR_ESTIMATION = frozenset({
-    "b2c",
-    "bin-level norm.",
-})
+_METHODS_WITHOUT_STRIPE_FACTOR_ESTIMATION = frozenset(
+    {
+        "b2c",
+        "bin-level norm.",
+    }
+)
 
 
 def filter_methods_with_stripe_factor_estimation(methods):
@@ -96,13 +98,7 @@ def _annotate_na_bars(ax, df, name_col, value_col, width=0.3, order=None):
 
 
 def barplot_distance_to_gt(
-    metrics_df,
-    methods,
-    color_dict,
-    name_metric,
-    outpath=None,
-    ax=None,
-    **kwargs
+    metrics_df, methods, color_dict, name_metric, outpath=None, ax=None, **kwargs
 ):
     df = metrics_df.copy()
     df = df[df["name"].isin(methods)]
@@ -128,13 +124,11 @@ def barplot_distance_to_gt(
         "log_scale": True,
         "log": True,
         "alpha": 1.0,
-        "err_kws":{'color': 'grey'},
+        "err_kws": {"color": "grey"},
         **kwargs,
     }
 
-    sns.barplot(
-        **kwargs
-    )
+    sns.barplot(**kwargs)
     _annotate_na_bars(ax, df_selection, "name", name_metric)
     ax.set_xlabel("")
     ax.set_ylabel("")
@@ -339,7 +333,7 @@ def striping_intensity_quantification_region_barplot(
     model_name_replacement_dict,
     cyto_select,
     axes=None,
-    **kwargs
+    **kwargs,
 ):
     df = striping_intensity_region_df(
         output_dir, region, to_plot, model_name_replacement_dict
@@ -358,7 +352,7 @@ def striping_intensity_quantification_region_barplot(
         hue="name",
         palette=color_dict,
         ax=axes,
-        **kwargs
+        **kwargs,
     )
 
     ax.set_xlabel("")
@@ -528,7 +522,7 @@ def plot_compromise_striping_intensity_global_structure_alteration(
     markers=None,
     ax=None,
     legend_=True,
-    alpha = 1.0
+    alpha=1.0,
 ):
     if colors:
         fig_width = 5
@@ -570,10 +564,10 @@ def plot_compromise_striping_intensity_global_structure_alteration(
         style=style,
         markers=markers,
         ax=ax,
-        alpha = alpha
+        alpha=alpha,
     )
     if not (colors is None) and legend:
-        axis.get_figure().subplots_adjust(right=0.6, bottom = 0.2)
+        axis.get_figure().subplots_adjust(right=0.6, bottom=0.2)
         ax.legend(
             loc="center left",
             bbox_to_anchor=(1.05, 0.5),
@@ -603,9 +597,7 @@ def plot_compromise_striping_intensity_global_structure_alteration(
     e = np.floor(np.log10(np.abs(linear_width_y))).astype(int)
     # print(e)
     linear_width_y = np.power(10.0, e)
-    axis.set_yscale(
-        "symlog", linthresh=linear_width_y, linscale=0.5
-    )
+    axis.set_yscale("symlog", linthresh=linear_width_y, linscale=0.5)
     # axis.set_yscale("asinh", linear_width=linear_width_y * factor_linear_width)
 
     max_distance = comparison_table["global structure alteration"].max()
@@ -663,7 +655,7 @@ def compromise_striping_intensity_global_structure_alteration(
     ax=None,
     colors_legend=True,
     metric="cosine",
-    alpha = 1.0
+    alpha=1.0,
 ):
     if cyto:
         print(f"striping intensity in cytoplasm")
@@ -738,9 +730,11 @@ def compromise_striping_intensity_global_structure_alteration(
             comparison_table.set_index("model").loc[to_plot].reset_index()
         )
 
-    na_mask = comparison_table[
-        ["striping intensity", "global structure alteration"]
-    ].isna().any(axis=1)
+    na_mask = (
+        comparison_table[["striping intensity", "global structure alteration"]]
+        .isna()
+        .any(axis=1)
+    )
     if na_mask.any():
         print(
             f"[compromise_striping_intensity_global_structure_alteration] "
@@ -762,7 +756,7 @@ def compromise_striping_intensity_global_structure_alteration(
         markers=markers,
         ax=ax,
         legend_=colors_legend,
-        alpha = alpha
+        alpha=alpha,
     )
 
     return axis
@@ -816,7 +810,9 @@ def compromise_striping_intensity_global_structure_alteration_cyto_all(
     return all_figs_axes
 
 
-def _load_compromise_data(cyto, global_dir_path, model_name_replacement_dict, metric="cosine"):
+def _load_compromise_data(
+    cyto, global_dir_path, model_name_replacement_dict, metric="cosine"
+):
     """Load striping intensity and global structure alteration tables, apply name replacement.
 
     Returns a DataFrame with columns: model, striping intensity, global structure alteration.
@@ -919,14 +915,14 @@ def compromise_striping_intensity_global_structure_alteration_cyto_all_with_erro
     colors=None,
     alpha=0.8,
     cyto_all=None,
-    ax = None
+    ax=None,
 ):
     """Like ``_cyto_all`` but aggregates seed runs as mean±std error bars instead of separate markers."""
     if cyto_all is None:
         cyto_all = [True, False]
     all_figs_axes = []
     for cyto in cyto_all:
-        if not(output_folder is None):
+        if not (output_folder is None):
             if cyto:
                 print("striping intensity in cytoplasm")
                 path_figure = (
@@ -936,9 +932,11 @@ def compromise_striping_intensity_global_structure_alteration_cyto_all_with_erro
             else:
                 print("striping intensity in cytoplasm + nucleus")
                 path_figure = (
-                    P(output_folder) / "striping_intensity-global_structure_alteration.pdf"
+                    P(output_folder)
+                    / "striping_intensity-global_structure_alteration.pdf"
                 )
-        else: path_figure = None
+        else:
+            path_figure = None
 
         comparison_table = _load_compromise_data(
             cyto, global_dir_path, model_name_replacement_dict
@@ -963,17 +961,21 @@ def compromise_striping_intensity_global_structure_alteration_cyto_all_with_erro
             annotation=annotation,
             markers=None,
             legend_=True,
-            ax = ax
+            ax=ax,
         )
 
         # Overlay error bars from the full (non-aggregated) table
-        plot_to_plot = to_plot if to_plot is not None else comparison_table["model"].unique().tolist()
+        plot_to_plot = (
+            to_plot
+            if to_plot is not None
+            else comparison_table["model"].unique().tolist()
+        )
         _add_errorbars_to_compromise_plot(
             axis, comparison_table, plot_to_plot, colors, alpha=alpha
         )
 
         axis.grid("on")
-        if not(path_figure is None):
+        if not (path_figure is None):
             plt.savefig(path_figure)
         all_figs_axes.append(axis)
 
@@ -1001,7 +1003,11 @@ def barplot_global_structure_alteration(
         distance_to_original_smoothed_path
     )
 
-    metric_filter = f"(metric == '{metric}')" if "metric" in distance_to_original_smoothed_table.columns else ""
+    metric_filter = (
+        f"(metric == '{metric}')"
+        if "metric" in distance_to_original_smoothed_table.columns
+        else ""
+    )
     base_query = (
         "(lane_name == 'rowscolumns') and "
         "(operation_name == 'sum') and "
@@ -1044,7 +1050,7 @@ def barplot_global_structure_alteration(
         x="model",
         y="global structure alteration",
         hue=hue,
-        order = to_plot,
+        order=to_plot,
         hue_order=to_plot,
         palette=palette,
         ax=ax,
@@ -1078,7 +1084,9 @@ def barplot_global_structure_alteration(
     pad_axes_in_points(axis, pad_left=0, pad_right=0, pad_bottom=0, pad_top=2)
     if not (output_folder is None):
         if metric == "euclidean":
-            path_figure = P(output_folder) / "barplot_global_structure_alteration_euclidean.pdf"
+            path_figure = (
+                P(output_folder) / "barplot_global_structure_alteration_euclidean.pdf"
+            )
         else:
             path_figure = P(output_folder) / "barplot_global_structure_alteration.pdf"
         plt.savefig(path_figure)

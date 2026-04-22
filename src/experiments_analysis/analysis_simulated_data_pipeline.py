@@ -194,9 +194,7 @@ def add_run_to_analysis(
     # ---- 2. Merge with existing and save to new dir ----------------------------
     existing_poisson = pd.read_pickle(old_output_dir / "poisson_summary_df.pkl")
     existing_poisson = existing_poisson[existing_poisson["name"] != run_name]
-    poisson_summary_df = pd.concat(
-        [existing_poisson, new_poisson], ignore_index=True
-    )
+    poisson_summary_df = pd.concat([existing_poisson, new_poisson], ignore_index=True)
     poisson_summary_df.to_pickle(new_output_dir / "poisson_summary_df.pkl")
     poisson_summary_df.to_csv(new_output_dir / "poisson_summary_df.csv")
 
@@ -290,7 +288,9 @@ def add_run_to_analysis(
     # -- difference_between_smoothed_curves: run only for the new comp key --
     gs_plots = gs_folder / "plots_global_structure"
     gs_plots.mkdir(exist_ok=True, parents=True)
-    old_gs_stats = old_gs_folder / "plots_global_structure" / "statistics_global_structure.csv"
+    old_gs_stats = (
+        old_gs_folder / "plots_global_structure" / "statistics_global_structure.csv"
+    )
     existing_stats = pd.read_csv(old_gs_stats)
     existing_stats = existing_stats[existing_stats["comp"] != run_name]
     # Compute only for the new run as comp (needs ref matrices too)
@@ -313,7 +313,11 @@ def add_run_to_analysis(
     # -- striping_intensity_cyto_statistics: run only on new row --
     cyto_si_folder = gs_folder / "cyto_striping_intensity"
     cyto_si_folder.mkdir(exist_ok=True, parents=True)
-    old_cyto_si = old_gs_folder / "cyto_striping_intensity" / "cyto_striping_intensity_statistics.csv"
+    old_cyto_si = (
+        old_gs_folder
+        / "cyto_striping_intensity"
+        / "cyto_striping_intensity_statistics.csv"
+    )
     existing_cyto_si = pd.read_csv(old_cyto_si)
     existing_cyto_si = existing_cyto_si[existing_cyto_si["name"] != run_name]
     striping_intensity_cyto_statistics(
@@ -321,4 +325,6 @@ def add_run_to_analysis(
     )
     new_cyto_si = pd.read_csv(cyto_si_folder / "cyto_striping_intensity_statistics.csv")
     combined_cyto_si = pd.concat([existing_cyto_si, new_cyto_si], ignore_index=True)
-    combined_cyto_si.to_csv(cyto_si_folder / "cyto_striping_intensity_statistics.csv", index=False)
+    combined_cyto_si.to_csv(
+        cyto_si_folder / "cyto_striping_intensity_statistics.csv", index=False
+    )

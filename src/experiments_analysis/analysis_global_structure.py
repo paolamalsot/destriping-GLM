@@ -55,7 +55,12 @@ def analysis_global_structure(
 
     matrices_output_folder = P(output_folder) / "destriping_matrices"
     matrices_output_folder.mkdir(parents=True, exist_ok=True)
-    save_n_counts_matrices(df_results, index_oi_dict, matrices_output_folder, fill_nans_from_original=fill_nans_from_original)
+    save_n_counts_matrices(
+        df_results,
+        index_oi_dict,
+        matrices_output_folder,
+        fill_nans_from_original=fill_nans_from_original,
+    )
 
     global_structure_output_folder = P(output_folder) / "plots_global_structure"
     global_structure_output_folder.mkdir(parents=True, exist_ok=True)

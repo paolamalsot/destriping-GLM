@@ -614,7 +614,9 @@ class spatialAdata:
         inf_sel = np.isinf(n_counts_adjusted)
         n_counts_adjusted[inf_sel] = self.obs.loc[inf_sel, "n_counts"]
         # both zero: leave as zero
-        zero_zero_sel = (self.obs["n_counts"].values == 0) & (destripe_factor.values == 0)
+        zero_zero_sel = (self.obs["n_counts"].values == 0) & (
+            destripe_factor.values == 0
+        )
         n_counts_adjusted[zero_zero_sel] = 0
         assert not n_counts_adjusted[zero_zero_sel].isna().any()
         return n_counts_adjusted
@@ -712,7 +714,9 @@ class spatialAdata:
         elif method is spatialAdata.destripe_dividing_factors_qm_tot_counts:
             return self._n_counts_adjusted_qm(**kwargs)
         else:
-            raise ValueError(f"No fast-path n_counts_adjusted implementation for {method}")
+            raise ValueError(
+                f"No fast-path n_counts_adjusted implementation for {method}"
+            )
 
     @history_decorator
     def destripe_dividing_factors_qm_tot_counts(
@@ -753,13 +757,19 @@ class spatialAdata:
             # Fast path: compute n_counts_adjusted for each subset on views (no X copy),
             # then apply destripe_counts once on the full data.
             self.n_counts
-            n_adj_cyto = self[cyto_indices]._compute_n_counts_adjusted(method_cyto, args_cyto)
-            n_adj_nucl = self[nucl_indices]._compute_n_counts_adjusted(method_nucl, args_nucl)
+            n_adj_cyto = self[cyto_indices]._compute_n_counts_adjusted(
+                method_cyto, args_cyto
+            )
+            n_adj_nucl = self[nucl_indices]._compute_n_counts_adjusted(
+                method_nucl, args_nucl
+            )
             self.obs["n_counts_adjusted"] = pd.concat([n_adj_cyto, n_adj_nucl]).reindex(
                 self.obs.index
             )
             destripe_counts(
-                self.adata, counts_key="n_counts", adjusted_counts_key="n_counts_adjusted"
+                self.adata,
+                counts_key="n_counts",
+                adjusted_counts_key="n_counts_adjusted",
             )
             self.n_counts
         else:
@@ -786,7 +796,7 @@ class spatialAdata:
         return self
 
     @history_decorator
-    def filter_cells(self, min_counts=None, min_genes=None): #actually fitering bins
+    def filter_cells(self, min_counts=None, min_genes=None):  # actually fitering bins
         sc.pp.filter_cells(self.adata, min_counts=min_counts, min_genes=min_genes)
         return self
 

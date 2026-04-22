@@ -63,9 +63,9 @@ def build_poisson_sol_from_stripings(sol, spatialdata, cell_id_label):
 class GlumWrapper:
     def __init__(
         self,
-        data = None,
-        id_label = None,
-        data_df = None,
+        data=None,
+        id_label=None,
+        data_df=None,
         init_method: str | None = None,
         init_method_args=None,
         family="nbinom",
@@ -179,7 +179,7 @@ class GlumWrapper:
     def fit(self):
         if self.df is None:
             self.df_from_sdata()
-        
+
         self.initialize_sol()
 
         P2 = self.initialize_P2()
@@ -187,11 +187,21 @@ class GlumWrapper:
         if self.regressorCV or self.sklearnCV:
             cv = self.make_splits()
             alphas = self.initialize_alphas()
-            supp_kwargs = {"cv": cv, "P2": P2, "P1": P1, "alphas": alphas, "l1_ratio": self.l1_ratio,
-                           "n_c_updates": self.n_c_updates}
+            supp_kwargs = {
+                "cv": cv,
+                "P2": P2,
+                "P1": P1,
+                "alphas": alphas,
+                "l1_ratio": self.l1_ratio,
+                "n_c_updates": self.n_c_updates,
+            }
         else:
-            supp_kwargs = {"P2": P2, "P1": P1, "l1_ratio": self.l1_ratio,
-                           "n_c_updates": self.n_c_updates}
+            supp_kwargs = {
+                "P2": P2,
+                "P1": P1,
+                "l1_ratio": self.l1_ratio,
+                "n_c_updates": self.n_c_updates,
+            }
 
         family = self.init_family()
 

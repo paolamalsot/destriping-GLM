@@ -15,8 +15,12 @@ def mean_cell_size_map(labels, coords, bin_size=1000):
 
     cell_sizes = label_valid.map(label_valid.value_counts())
 
-    row_bins = np.arange(coords["array_row"].min(), coords["array_row"].max() + bin_size, bin_size)
-    col_bins = np.arange(coords["array_col"].min(), coords["array_col"].max() + bin_size, bin_size)
+    row_bins = np.arange(
+        coords["array_row"].min(), coords["array_row"].max() + bin_size, bin_size
+    )
+    col_bins = np.arange(
+        coords["array_col"].min(), coords["array_col"].max() + bin_size, bin_size
+    )
 
     H_sum, _, _ = np.histogram2d(
         coords_valid["array_row"].values,
@@ -58,7 +62,8 @@ def plot_mean_cell_size(labels_by_p, coords, stats_df, bin_size=20, n_cols=3):
 
     fig = plt.figure(figsize=(w, h))
     fig, axes = plt.subplots(
-        n_rows, n_cols,
+        n_rows,
+        n_cols,
         figsize=(w, h),
         constrained_layout=True,
     )
@@ -81,7 +86,7 @@ def plot_mean_cell_size(labels_by_p, coords, stats_df, bin_size=20, n_cols=3):
         ax.set_xticks([])
         ax.set_yticks([])
 
-    for ax in axes.flatten()[len(all_ps):]:
+    for ax in axes.flatten()[len(all_ps) :]:
         ax.set_visible(False)
 
     fig.suptitle("Mean cell size [bins]", fontsize=14)

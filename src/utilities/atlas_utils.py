@@ -39,7 +39,7 @@ def pixel_to_atlas_coords(pixel_coords, O, U, V, img_width, img_height):
     np.ndarray, shape (N, 3)
         Atlas voxel coordinates.
     """
-    nx = pixel_coords[:, 1] / img_width   # col 1 = columns (x) → normalize by width
+    nx = pixel_coords[:, 1] / img_width  # col 1 = columns (x) → normalize by width
     ny = pixel_coords[:, 0] / img_height  # col 0 = rows (y) → normalize by height
     atlas_coords = O[None, :] + nx[:, None] * U[None, :] + ny[:, None] * V[None, :]
     return atlas_coords

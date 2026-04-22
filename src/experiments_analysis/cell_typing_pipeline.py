@@ -27,12 +27,15 @@ _METHOD_RENAMES = {
 # Config loading
 # ---------------------------------------------------------------------------
 
+
 def _resolve_run_dir(path: str | Path) -> Path:
     """Resolve a run path that may be a Hydra sweep root to the actual run dir."""
     p = Path(path)
     if (p / "multirun.yaml").exists():
         subdirs = [d for d in p.iterdir() if d.is_dir() and not d.name.startswith(".")]
-        assert len(subdirs) == 1, f"Expected 1 run subdir in sweep {p}, found {len(subdirs)}"
+        assert (
+            len(subdirs) == 1
+        ), f"Expected 1 run subdir in sweep {p}, found {len(subdirs)}"
         return subdirs[0]
     return p
 
@@ -108,7 +111,9 @@ def load_benchmark_config(yaml_path: str | Path) -> dict:
     ratio_baselines = cfg.get("dividing_by_ratio_baselines", {})
     if "dividing_99_quantile" in ratio_baselines:
         b2csym_path = Path(ratio_baselines["dividing_99_quantile"])
-        methods["dividing_99_quantile"] = str(b2csym_path / "destriped_data" / "df.parquet")
+        methods["dividing_99_quantile"] = str(
+            b2csym_path / "destriped_data" / "df.parquet"
+        )
 
     # ground truth references (if supp_baselines_dir is available)
     supp_dir = cfg.get("supp_baselines_dir")
@@ -227,6 +232,7 @@ def run_cell_typing(
 # Comparison helpers
 # ---------------------------------------------------------------------------
 
+
 def _shared_cell_index(sdatas: dict[str, spatialAdata]) -> pd.Index:
     """Return the intersection of cell indices across all methods."""
     indices = [s.adata.obs.index for s in sdatas.values()]
@@ -247,7 +253,7 @@ def _row_spearman(X, Y):
     rX -= rX.mean(axis=1, keepdims=True)
     rY -= rY.mean(axis=1, keepdims=True)
     num = (rX * rY).sum(axis=1)
-    den = np.sqrt((rX ** 2).sum(axis=1) * (rY ** 2).sum(axis=1))
+    den = np.sqrt((rX**2).sum(axis=1) * (rY**2).sum(axis=1))
     return np.where(den == 0, 0.0, num / den)
 
 
@@ -270,12 +276,14 @@ def per_cell_spearman_with_gt(
             continue
         method_X = np.asarray(sdata.adata[shared].X.todense())
         rho = _row_spearman(method_X, gt_X)
-        df = pd.DataFrame({
-            "method": name,
-            "cell_id": shared,
-            "spearman_rho": rho,
-            "bin_count": bin_count,
-        })
+        df = pd.DataFrame(
+            {
+                "method": name,
+                "cell_id": shared,
+                "spearman_rho": rho,
+                "bin_count": bin_count,
+            }
+        )
         records.append(df)
     return pd.concat(records, ignore_index=True)
 
@@ -310,12 +318,14 @@ def per_cell_agreement_with_gt(
         if name == gt_key:
             continue
         method_labels = df.loc[shared, "predicted_labels"].astype(str)
-        rec = pd.DataFrame({
-            "method": name,
-            "cell_id": shared,
-            "agreement": (method_labels.values == gt_labels.values),
-            "bin_count": bin_count.values,
-        })
+        rec = pd.DataFrame(
+            {
+                "method": name,
+                "cell_id": shared,
+                "agreement": (method_labels.values == gt_labels.values),
+                "bin_count": bin_count.values,
+            }
+        )
         records.append(rec)
     return pd.concat(records, ignore_index=True)
 
@@ -358,7 +368,9 @@ def compare_binned_data(
     for i, n1 in enumerate(names):
         for n2 in names[i + 1 :]:
             rho, pval = spearmanr(gene_totals[n1], gene_totals[n2])
-            corr_records.append({"method_1": n1, "method_2": n2, "spearman_rho": rho, "p_value": pval})
+            corr_records.append(
+                {"method_1": n1, "method_2": n2, "spearman_rho": rho, "p_value": pval}
+            )
     rank_corr = pd.DataFrame.from_records(corr_records)
 
     return {
@@ -395,18 +407,30 @@ def compare_cell_types(
     names = list(cell_type_dfs.keys())
 
     # pairwise agreement
-    labels = {name: cell_type_dfs[name].loc[shared, "predicted_labels"].astype(str) for name in names}
+    labels = {
+        name: cell_type_dfs[name].loc[shared, "predicted_labels"].astype(str)
+        for name in names
+    }
     agreement_records = []
     for i, n1 in enumerate(names):
         for n2 in names[i + 1 :]:
             frac = (labels[n1] == labels[n2]).mean()
-            agreement_records.append({"method_1": n1, "method_2": n2, "agreement_fraction": frac})
+            agreement_records.append(
+                {"method_1": n1, "method_2": n2, "agreement_fraction": frac}
+            )
     agreement = pd.DataFrame.from_records(agreement_records)
 
     # type counts
-    type_counts = pd.DataFrame(
-        {name: cell_type_dfs[name].loc[shared, "predicted_labels"].value_counts() for name in names}
-    ).fillna(0).astype(int)
+    type_counts = (
+        pd.DataFrame(
+            {
+                name: cell_type_dfs[name].loc[shared, "predicted_labels"].value_counts()
+                for name in names
+            }
+        )
+        .fillna(0)
+        .astype(int)
+    )
     type_counts.index.name = "predicted_labels"
 
     # median confidence per type
@@ -428,6 +452,7 @@ def compare_cell_types(
 # ---------------------------------------------------------------------------
 # Top-level pipeline
 # ---------------------------------------------------------------------------
+
 
 def run_pipeline(
     sdata_path: str | Path,
@@ -480,7 +505,9 @@ def run_pipeline(
         cell_sdata = run_cell_typing(cell_sdata, model=cell_typing_model)
 
         # save cell-type CSV
-        ct_df = cell_sdata.adata.obs[["predicted_labels", "conf_score", "bin_count"]].copy()
+        ct_df = cell_sdata.adata.obs[
+            ["predicted_labels", "conf_score", "bin_count"]
+        ].copy()
         save_path = output_dir / "cell_types" / f"{name}.csv"
         save_path.parent.mkdir(parents=True, exist_ok=True)
         ct_df.to_csv(save_path)
@@ -521,7 +548,10 @@ def run_unsupervised_clustering(
         adata._inplace_subset_obs(keep)
         logging.info(
             "  Percentile filter (>= %.0f%%): kept %d / %d cells (threshold=%.1f counts)",
-            filter_percentile, adata.n_obs, n_before, threshold,
+            filter_percentile,
+            adata.n_obs,
+            n_before,
+            threshold,
         )
     sc.pp.filter_genes(adata, min_cells=3)
 
@@ -661,7 +691,11 @@ def run_pipeline_unsupervised(
             logging.info("  Finished clustering: %s", name)
 
     paths_records = [
-        {"method": name, "binned_sdata_path": binned_paths[name], "clustered_sdata_path": clustered_paths[name]}
+        {
+            "method": name,
+            "binned_sdata_path": binned_paths[name],
+            "clustered_sdata_path": clustered_paths[name],
+        }
         for name in methods
     ]
     paths_df = pd.DataFrame.from_records(paths_records)

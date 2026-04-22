@@ -5,6 +5,7 @@ import os
 
 from PIL import Image
 import logging
+
 logger = logging.getLogger(__name__)
 # setting needed so PIL can load the large TIFFs
 Image.MAX_IMAGE_PIXELS = None
@@ -26,7 +27,7 @@ def save_tif_img_with_colorbar(img, save_path, log1p=False):
         logger.debug(f"vmax-vmin:{vmax-vmin}")
         img = (255 * (img - vmin) / (vmax - vmin)).astype(np.uint8)
     else:
-        img[~np.isnan(img)] = 255/2 #put evr to 255/2
+        img[~np.isnan(img)] = 255 / 2  # put evr to 255/2
     img = img.astype(np.uint8)
 
     # save or return image

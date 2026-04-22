@@ -39,7 +39,9 @@ def parse_config(original_root, cfg):
     cell_id_label = cfg.dataset.cell_id_label
 
     if cfg.percentage == 1.0:
-        config = yaml.safe_load((subsampling_run_dir / ".hydra" / "config.yaml").read_text())
+        config = yaml.safe_load(
+            (subsampling_run_dir / ".hydra" / "config.yaml").read_text()
+        )
         path_data = Path(original_root) / config["dataset"]["path_data"]
         data = load_spatialAdata(str(path_data))
     else:

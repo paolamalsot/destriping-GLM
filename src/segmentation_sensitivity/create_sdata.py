@@ -8,7 +8,9 @@ from src.spatialAdata.loading import load_spatialAdata
 from src.spatialAdata.spatialAdata import spatialAdata
 
 
-def load_subsampled_sdatas(run_dir: str | Path, project_root: str | Path = ".") -> dict[float, spatialAdata]:
+def load_subsampled_sdatas(
+    run_dir: str | Path, project_root: str | Path = "."
+) -> dict[float, spatialAdata]:
     """Load subsampled spatialAdata objects from a segmentation-sensitivity run directory.
 
     Reads ``.hydra/config.yaml`` to find the original sdata path and the
@@ -55,7 +57,9 @@ def load_subsampled_sdatas(run_dir: str | Path, project_root: str | Path = ".") 
     return result
 
 
-def load_split_sdatas(run_dir: str | Path, project_root: str | Path = ".") -> dict[float, spatialAdata]:
+def load_split_sdatas(
+    run_dir: str | Path, project_root: str | Path = "."
+) -> dict[float, spatialAdata]:
     """Load split spatialAdata objects from a splitting sensitivity run directory.
 
     Analogous to ``load_subsampled_sdatas`` but reads ``split_p*/`` sub-directories
@@ -92,7 +96,9 @@ def load_split_sdatas(run_dir: str | Path, project_root: str | Path = ".") -> di
     return result
 
 
-def load_merged_sdatas(run_dir: str | Path, project_root: str | Path = ".") -> dict[float, spatialAdata]:
+def load_merged_sdatas(
+    run_dir: str | Path, project_root: str | Path = "."
+) -> dict[float, spatialAdata]:
     """Load merged spatialAdata objects from a merging sensitivity run directory.
 
     Analogous to ``load_subsampled_sdatas`` but reads ``merge_p*/`` sub-directories

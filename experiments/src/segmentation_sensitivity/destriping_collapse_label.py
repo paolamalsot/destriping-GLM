@@ -30,12 +30,14 @@ def inspect_signature_from_path(path):
     class_ = getattr(module, class_name)
     return inspect.signature(class_.__init__)
 
+
 def collapse_label(data: spatialAdata, cell_id_label):
     # collapse all nuclei indices to the first nucleic index
     nucl_mask = data.nucl_mask(cell_id_label)
     first_index = data.obs.loc[nucl_mask, cell_id_label].iloc[0]
     data.obs.loc[nucl_mask, cell_id_label] = first_index
     return data
+
 
 def parse_config(original_root, cfg):
     output_dir = os.getcwd()

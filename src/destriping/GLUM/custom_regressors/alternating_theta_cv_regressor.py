@@ -109,7 +109,11 @@ class AlternatingThetaCVRegressor:
         If warm_start_alpha is enabled, wraps in WarmStartWrapper to
         traverse the alpha path.  Otherwise builds a plain regressor.
         """
-        args = {**self.regressor_args, **best_glm_params, "family": set_family_arg(theta)}
+        args = {
+            **self.regressor_args,
+            **best_glm_params,
+            "family": set_family_arg(theta),
+        }
 
         if warm_start is not None:
             args["start_params"] = warm_start
@@ -145,9 +149,7 @@ class AlternatingThetaCVRegressor:
             self.outer_iter_ = outer_iter
 
             # ---- Step 1: full alpha CV at current theta ------------------
-            logger.debug(
-                f"Outer iter {outer_iter}: alpha CV with theta={theta:.6f}"
-            )
+            logger.debug(f"Outer iter {outer_iter}: alpha CV with theta={theta:.6f}")
             self._cv_regressor = self._build_cv_regressor(theta)
             self._cv_regressor.fit(X=X, y=y, **fit_kw)
 
@@ -175,7 +177,9 @@ class AlternatingThetaCVRegressor:
                 warm_start = extract_intercept_coef(reg)
 
                 if abs(new_theta - theta) < self.delta_theta_thresh:
-                    logger.debug(f"  Theta converged (delta={abs(new_theta - theta):.2e})")
+                    logger.debug(
+                        f"  Theta converged (delta={abs(new_theta - theta):.2e})"
+                    )
                     theta = new_theta
                     break
                 theta = new_theta
@@ -193,9 +197,7 @@ class AlternatingThetaCVRegressor:
                 )
                 break
         else:
-            logger.debug(
-                f"Outer loop: max_outer_iter ({self.max_outer_iter}) reached"
-            )
+            logger.debug(f"Outer loop: max_outer_iter ({self.max_outer_iter}) reached")
 
         return self
 

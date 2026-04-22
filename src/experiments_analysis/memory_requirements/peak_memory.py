@@ -47,7 +47,8 @@ def query_sacct(job_ids: list[str]) -> pd.DataFrame:
     result = subprocess.run(
         [
             "sacct",
-            "-j", ",".join(job_ids),
+            "-j",
+            ",".join(job_ids),
             "--format=JobID,MaxRSS,Elapsed,State",
             "--noheader",
         ],
@@ -61,7 +62,12 @@ def query_sacct(job_ids: list[str]) -> pd.DataFrame:
         if len(parts) < 4:
             continue
         rows.append(
-            {"JobID": parts[0], "MaxRSS": parts[1], "Elapsed": parts[2], "State": parts[3]}
+            {
+                "JobID": parts[0],
+                "MaxRSS": parts[1],
+                "Elapsed": parts[2],
+                "State": parts[3],
+            }
         )
     return pd.DataFrame(rows, columns=["JobID", "MaxRSS", "Elapsed", "State"])
 
@@ -77,8 +83,10 @@ def _parse_rss_to_gb(rss_str: str) -> float | None:
     if not m:
         return None
     value, unit = float(m.group(1)), m.group(2)
-    kb = {"K": value, "M": value * 1024, "G": value * 1024 ** 2, "": value / 1024}.get(unit)
-    return kb / (1024 ** 2) if kb is not None else None  # KB → GB
+    kb = {"K": value, "M": value * 1024, "G": value * 1024**2, "": value / 1024}.get(
+        unit
+    )
+    return kb / (1024**2) if kb is not None else None  # KB → GB
 
 
 # ---------------------------------------------------------------------------
@@ -158,7 +166,5 @@ def build_memory_table(runs: dict[str, Path | str]) -> pd.DataFrame:
                 {"run": label, "peak_memory_GB": round(result["peak_memory_GB"], 2)}
             )
         except Exception as e:
-            records.append(
-                {"run": label, "peak_memory_GB":"not found"}
-            )
+            records.append({"run": label, "peak_memory_GB": "not found"})
     return pd.DataFrame(records)
