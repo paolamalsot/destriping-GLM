@@ -1,0 +1,19 @@
+defaults:
+  - ../models/glum/v6@_here_
+  - ../sweep@_here_
+  - _self_
+  - override hydra/launcher: ../../../../../hydra/launcher/cluster_4G
+
+experiment_output_dir: results/benchmark_destriping_model/human_lymph_node/glum_benchmark_v6/v6_none_init
+
+parsing_fun: experiments.src.custom_destriping_benchmark.fit_glum
+
+model_args:
+  init_method: null
+
+hydra:
+  launcher:
+    mem_per_cpu: 10G
+    timeout_min: 720
+  searchpath:
+    - file://experiments/hydra_config/destriping_model/human_lymph_node

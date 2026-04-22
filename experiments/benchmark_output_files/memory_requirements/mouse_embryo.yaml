@@ -1,0 +1,3 @@
+canonical_run: "results/benchmark_destriping_model/mouse_embryo/glum_benchmark_v6/v6/2026-04-15/20-52-29/0__+dataset=mouse_embryo"
+sol_dir:       "results/benchmark_destriping_model/mouse_embryo/glum_benchmark_v6/v6/2026-04-15/20-52-29/0__+dataset=mouse_embryo/sol"
+dist_pkl:      "results/benchmark_destriping_model/mouse_embryo/glum_benchmark_v6/v6/2026-04-15/20-52-29/0__+dataset=mouse_embryo/dist.pkl"

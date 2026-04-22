@@ -1,0 +1,25 @@
+seeds:
+  42:
+    runs:
+      pct_80: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_subsample_seed_42/2026-04-15/20-55-58/0__percentage=0.8"
+      pct_50: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_subsample_seed_42/2026-04-15/20-55-58/1__percentage=0.5"
+      pct_25: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_subsample_seed_42/2026-04-15/20-55-58/2__percentage=0.25"
+      pct_10: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_subsample_seed_42/2026-04-15/20-55-58/3__percentage=0.1"
+      pct_1: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_subsample_seed_42/2026-04-15/20-55-58/4__percentage=0.01"
+  64:
+    runs:
+      pct_80: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_subsample_seed_64/2026-04-15/20-56-04/0__percentage=0.8"
+      pct_50: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_subsample_seed_64/2026-04-15/20-56-04/1__percentage=0.5"
+      pct_25: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_subsample_seed_64/2026-04-15/20-56-04/2__percentage=0.25"
+      pct_10: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_subsample_seed_64/2026-04-15/20-56-04/3__percentage=0.1"
+      pct_1: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_subsample_seed_64/2026-04-15/20-56-04/4__percentage=0.01"
+  754:
+    runs:
+      pct_80: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_subsample_seed_754/2026-04-15/20-56-08/0__percentage=0.8"
+      pct_50: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_subsample_seed_754/2026-04-15/20-56-08/1__percentage=0.5"
+      pct_25: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_subsample_seed_754/2026-04-15/20-56-08/2__percentage=0.25"
+      pct_10: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_subsample_seed_754/2026-04-15/20-56-08/3__percentage=0.1"
+      pct_1: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_subsample_seed_754/2026-04-15/20-56-08/4__percentage=0.01"
+
+output_dir: "results/segmentation_sensitivity_analysis/simulation_4_with_struct_nb_weibul_2_seed_546/analysis_subsample_v6"
+figures_output_dir: "results/publication_oup_vrepro/segmentation_sensitivity/figures/simulation/subsample"

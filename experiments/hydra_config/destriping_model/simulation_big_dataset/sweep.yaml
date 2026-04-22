@@ -1,0 +1,22 @@
+defaults:
+  - ./default@_here_
+  - _self_
+
+parsing_fun: experiments.src.custom_destriping_benchmark.fit_model_destripe_expand_and_aggr_lightweight
+
+hydra:
+
+  job:
+    chdir: true
+  run:
+    dir: ${experiment_output_dir}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: ${experiment_output_dir}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+
+#  launcher:
+#    timeout_min: 660
+
+#  launcher:
+#    mem_per_cpu: 10G
+#    timeout_min: 660
+    #${if:dataset.big,50G,10G}  # Larger memory for big datasets

@@ -1,0 +1,9 @@
+defaults:
+  - _self_
+  - default@_here_
+  - override hydra/launcher: ../../../../hydra/launcher/cluster_4G
+
+experiment_output_dir: results/memory_requirements/fitting/zebrafish_head
+df_path: results/memory_requirements/datasets_df/df_zebrafish_head.pkl
+model_args:
+  cv_split_method: "spatial"

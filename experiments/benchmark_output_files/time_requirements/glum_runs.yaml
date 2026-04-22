@@ -1,0 +1,4 @@
+mouse_brain: "results/benchmark_destriping_model/mouse_brain_v3/glum_benchmark_v6/v6/2026-04-15/20-52-24"
+mouse_embryo: "results/benchmark_destriping_model/mouse_embryo/glum_benchmark_v6/v6/2026-04-15/20-52-29"
+human_lymph_node: "results/benchmark_destriping_model/human_lymph_node/glum_benchmark_v6/v6/2026-04-15/20-52-19"
+zebrafish_head: "results/benchmark_destriping_model/zebrafish_head/glum_benchmark_v6/v6/2026-04-15/20-52-34"

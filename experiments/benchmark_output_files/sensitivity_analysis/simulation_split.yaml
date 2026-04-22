@@ -1,0 +1,22 @@
+seeds:
+  42:
+    runs:
+      p_split_5: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_split_seed_42/2026-04-15/20-55-44/0__p_split=0.05"
+      p_split_10: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_split_seed_42/2026-04-15/20-55-44/1__p_split=0.1"
+      p_split_50: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_split_seed_42/2026-04-15/20-55-44/2__p_split=0.5"
+      p_split_90: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_split_seed_42/2026-04-15/20-55-44/3__p_split=0.9"
+  64:
+    runs:
+      p_split_5: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_split_seed_64/2026-04-15/20-55-49/0__p_split=0.05"
+      p_split_10: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_split_seed_64/2026-04-15/20-55-49/1__p_split=0.1"
+      p_split_50: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_split_seed_64/2026-04-15/20-55-49/2__p_split=0.5"
+      p_split_90: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_split_seed_64/2026-04-15/20-55-49/3__p_split=0.9"
+  754:
+    runs:
+      p_split_5: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_split_seed_754/2026-04-15/20-55-54/0__p_split=0.05"
+      p_split_10: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_split_seed_754/2026-04-15/20-55-54/1__p_split=0.1"
+      p_split_50: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_split_seed_754/2026-04-15/20-55-54/2__p_split=0.5"
+      p_split_90: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_split_seed_754/2026-04-15/20-55-54/3__p_split=0.9"
+
+output_dir: "results/segmentation_sensitivity_analysis/simulation_4_with_struct_nb_weibul_2_seed_546/analysis_split_v6"
+figures_output_dir: "results/publication_oup_vrepro/segmentation_sensitivity/figures/simulation/split"

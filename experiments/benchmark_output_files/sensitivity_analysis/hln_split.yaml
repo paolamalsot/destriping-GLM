@@ -1,0 +1,22 @@
+seeds:
+  42:
+    runs:
+      p_split_5: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_split_seed_42/2026-04-15/20-54-59/0__p_split=0.05"
+      p_split_10: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_split_seed_42/2026-04-15/20-54-59/1__p_split=0.1"
+      p_split_50: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_split_seed_42/2026-04-15/20-54-59/2__p_split=0.5"
+      p_split_90: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_split_seed_42/2026-04-15/20-54-59/3__p_split=0.9"
+  64:
+    runs:
+      p_split_5: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_split_seed_64/2026-04-15/20-55-04/0__p_split=0.05"
+      p_split_10: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_split_seed_64/2026-04-15/20-55-04/1__p_split=0.1"
+      p_split_50: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_split_seed_64/2026-04-15/20-55-04/2__p_split=0.5"
+      p_split_90: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_split_seed_64/2026-04-15/20-55-04/3__p_split=0.9"
+  754:
+    runs:
+      p_split_5: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_split_seed_754/2026-04-15/20-55-09/0__p_split=0.05"
+      p_split_10: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_split_seed_754/2026-04-15/20-55-09/1__p_split=0.1"
+      p_split_50: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_split_seed_754/2026-04-15/20-55-09/2__p_split=0.5"
+      p_split_90: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_split_seed_754/2026-04-15/20-55-09/3__p_split=0.9"
+
+output_dir: "results/segmentation_sensitivity_analysis/human_lymph_node/analysis_split_v6"
+figures_output_dir: "results/publication_oup_vrepro/segmentation_sensitivity/figures/human_lymph_node/split"

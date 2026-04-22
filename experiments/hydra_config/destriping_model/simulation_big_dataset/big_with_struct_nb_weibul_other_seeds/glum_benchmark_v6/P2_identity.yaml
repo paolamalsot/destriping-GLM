@@ -1,0 +1,21 @@
+defaults:
+  - ../../models/glum/v6@_here_
+  - ../sweep@_here_
+  - _self_
+  - override hydra/launcher: ../../../../../../hydra/launcher/cluster_4G
+
+experiment_output_dir: results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/glum_benchmark_v6/v6_P2_identity
+
+parsing_fun: experiments.src.custom_destriping_benchmark.fit_glum
+
+model_args:
+  P2: "identity"
+
+hydra:
+  launcher:
+    mem_per_cpu: 10G
+  sweeper:
+    params:
+      dataset: simulation_4_with_struct_nb_weibul_2_seed_36,simulation_4_with_struct_nb_weibul_2_seed_546
+  searchpath:
+    - file://experiments/hydra_config/destriping_model/simulation_big_dataset

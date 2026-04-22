@@ -1,0 +1,22 @@
+defaults:
+  - ../../models/glum/v6@_here_
+  - ../../default@_here_
+  - /dataset: simulation_4_with_struct_nb_weibul_2
+  - _self_
+
+experiment_output_dir: results/benchmark_destriping_model/simulation_big_with_struct_nb_weibul_2/glum_benchmark_v6/v6_local
+
+parsing_fun: experiments.src.custom_destriping_benchmark.fit_glum
+
+hydra:
+  job:
+    chdir: true
+  run:
+    dir: ${experiment_output_dir}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: ${experiment_output_dir}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweeper:
+    params:
+      +dataset: simulation_4_with_struct_nb_weibul_2
+  searchpath:
+    - file://experiments/hydra_config/destriping_model/simulation_big_dataset

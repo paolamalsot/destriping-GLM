@@ -1,0 +1,15 @@
+# @package hydra.launcher
+
+defaults:
+  - submitit_slurm
+
+timeout_min: 100
+cpus_per_task: 4
+_target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
+comment: null
+signal_delay_s: 600
+max_num_timeout: 20
+additional_parameters: {}
+setup: []
+constraint: null                  
+mem_per_cpu: 4G

@@ -1,0 +1,25 @@
+seeds:
+  42:
+    runs:
+      pct_80: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_subsample_seed_42/2026-04-15/20-55-14/0__percentage=0.8"
+      pct_50: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_subsample_seed_42/2026-04-15/20-55-14/1__percentage=0.5"
+      pct_25: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_subsample_seed_42/2026-04-15/20-55-14/2__percentage=0.25"
+      pct_10: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_subsample_seed_42/2026-04-15/20-55-14/3__percentage=0.1"
+      pct_1: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_subsample_seed_42/2026-04-15/20-55-14/4__percentage=0.01"
+  64:
+    runs:
+      pct_80: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_subsample_seed_64/2026-04-15/20-55-19/0__percentage=0.8"
+      pct_50: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_subsample_seed_64/2026-04-15/20-55-19/1__percentage=0.5"
+      pct_25: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_subsample_seed_64/2026-04-15/20-55-19/2__percentage=0.25"
+      pct_10: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_subsample_seed_64/2026-04-15/20-55-19/3__percentage=0.1"
+      pct_1: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_subsample_seed_64/2026-04-15/20-55-19/4__percentage=0.01"
+  754:
+    runs:
+      pct_80: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_subsample_seed_754/2026-04-15/20-55-24/0__percentage=0.8"
+      pct_50: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_subsample_seed_754/2026-04-15/20-55-24/1__percentage=0.5"
+      pct_25: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_subsample_seed_754/2026-04-15/20-55-24/2__percentage=0.25"
+      pct_10: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_subsample_seed_754/2026-04-15/20-55-24/3__percentage=0.1"
+      pct_1: "results/segmentation_sensitivity/human_lymph_node/destriping_v6_subsample_seed_754/2026-04-15/20-55-24/4__percentage=0.01"
+
+output_dir: "results/segmentation_sensitivity_analysis/human_lymph_node/analysis_subsample_v6"
+figures_output_dir: "results/publication_oup_vrepro/segmentation_sensitivity/figures/human_lymph_node/subsample"

@@ -1,0 +1,15 @@
+{
+    "include": [
+      "src",
+      "experiments/src",
+      "experiments/scripts",
+      "experiments/utilities",
+      "my_notebooks",
+      "notebooks",
+      "unit_tests"
+    ],
+    "exclude": [
+      "**/node_modules",
+      "**/__pycache__"
+    ]
+}

@@ -1,0 +1,23 @@
+defaults:
+  - _self_
+
+random_seed: 678
+n_rows: null
+n_cols: null
+occupational_density: null
+min_cell_size: null 
+max_cell_size: null
+segmentation_mask_path: "results/Visium_HD_Mouse_Brain_tissue/matrix_labels__25_06_03__16:54:16.npy"
+n_genes: null
+sc_ref_path: null
+avg_tot_counts_per_bin: null 
+sigma_tot_counts_per_bin_across_cells: null
+expected_concentration_gene_profile_path: "results/my_notebooks/simulation_n_counts_real_data/cdata__25_06_03__21:06:36.h5ad"
+stripe_factors_generator: 
+  - "weibull_constrained"
+  - "weibull_constrained"
+stripes_generator_params:
+  - {loc: 0.20, shape: 2.372, scale: 0.96, min_val: -.inf, max_val: .inf}
+  - {loc: 0.48, shape: 2.22,  scale: 0.63, min_val: -.inf, max_val: .inf}
+distribution: "negative_binomial"
+distribution_params: {"dispersion": 0.06}

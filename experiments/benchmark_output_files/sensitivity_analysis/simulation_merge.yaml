@@ -1,0 +1,29 @@
+seeds:
+  42:
+    runs:
+      p_merge_0.01: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_merge_seed_42/2026-04-15/20-55-28/0__p_merge=0.01"
+      p_merge_10: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_merge_seed_42/2026-04-15/20-55-28/1__p_merge=0.1"
+      p_merge_25: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_merge_seed_42/2026-04-15/20-55-28/2__p_merge=0.25"
+      p_merge_50: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_merge_seed_42/2026-04-15/20-55-28/3__p_merge=0.5"
+      p_merge_80: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_merge_seed_42/2026-04-15/20-55-28/4__p_merge=0.8"
+      p_merge_100: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_merge_seed_42/2026-04-15/20-55-28/5__p_merge=1.0"
+
+  64:
+    runs:
+      p_merge_0.01: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_merge_seed_64/2026-04-15/20-55-34/0__p_merge=0.01"
+      p_merge_10: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_merge_seed_64/2026-04-15/20-55-34/1__p_merge=0.1"
+      p_merge_25: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_merge_seed_64/2026-04-15/20-55-34/2__p_merge=0.25"
+      p_merge_50: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_merge_seed_64/2026-04-15/20-55-34/3__p_merge=0.5"
+      p_merge_80: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_merge_seed_64/2026-04-15/20-55-34/4__p_merge=0.8"
+      p_merge_100: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_merge_seed_64/2026-04-15/20-55-34/5__p_merge=1.0"
+  754:
+    runs:
+      p_merge_0.01: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_merge_seed_754/2026-04-15/20-55-39/0__p_merge=0.01"
+      p_merge_10: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_merge_seed_754/2026-04-15/20-55-39/1__p_merge=0.1"
+      p_merge_25: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_merge_seed_754/2026-04-15/20-55-39/2__p_merge=0.25"
+      p_merge_50: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_merge_seed_754/2026-04-15/20-55-39/3__p_merge=0.5"
+      p_merge_80: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_merge_seed_754/2026-04-15/20-55-39/4__p_merge=0.8"
+      p_merge_100: "results/segmentation_sensitivity/simulation_4_with_struct_nb_weibul_2_seed_546/destriping_v6_merge_seed_754/2026-04-15/20-55-39/5__p_merge=1.0"
+
+output_dir: "results/segmentation_sensitivity_analysis/simulation_4_with_struct_nb_weibul_2_seed_546/analysis_merge_v6"
+figures_output_dir: "results/publication_oup_vrepro/segmentation_sensitivity/figures/simulation/merge"
