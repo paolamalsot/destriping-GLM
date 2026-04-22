@@ -796,7 +796,7 @@ class spatialAdata:
         return self
 
     @history_decorator
-    def filter_cells(self, min_counts=None, min_genes=None):  # actually fitering bins
+    def filter_cells(self, min_counts=None, min_genes=None):  # actually filtering bins
         sc.pp.filter_cells(self.adata, min_counts=min_counts, min_genes=min_genes)
         return self
 

@@ -1,6 +1,6 @@
 # destriping-GLM
 
-This branch contains the code for a faster version of the destriping-GLM (10x speedup 🚀). The results are qualitatively the same as in the main branch.
+This is a faster version of destriping-GLM (10x speedup 🚀). The earlier, slower implementation (as submitted to *Bioinformatics*, OUP) lives on the [`bioinformatics-OUP`](https://github.com/paolamalsot/destriping-GLM/tree/bioinformatics-OUP) branch; results are qualitatively the same.
 
 ---
 
