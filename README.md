@@ -2,13 +2,9 @@
 
 This is a faster version of destriping-GLM (10x speedup 🚀). The earlier, slower implementation (as submitted to *Bioinformatics*, OUP) lives on the [`bioinformatics-OUP`](https://github.com/paolamalsot/destriping-GLM/tree/bioinformatics-OUP) branch; results are qualitatively the same.
 
----
-
 ## Motivation
 
 10x Genomics VisiumHD enables spatial transcriptomics at ~2 μm² resolution but often exhibits **slide-specific, non-periodic striping artifacts** due to lane-width variability. These multiplicative row/column effects distort bin total counts and can bias downstream analyses.
-
----
 
 ## Method
 
@@ -35,15 +31,11 @@ We fit nucleus concentrations and stripe factors jointly in a generalized linear
 - **iterative dispersion estimation** for $\phi$,
 - a correction step that converts the fitted parameters into a **destriped counts image**.
 
----
-
 ## Implementation
 
 We fit the GLM with block coordinate descent, alternating L-BFGS steps in $(\log h, \log w)$ with Newton steps in $\log c$. This (+ other optimizations) results in a 10× speedup compared to the previous version, which used L-BFGS steps for all parameters.
 
 ⚡ We use the Python libraries [glum](https://github.com/Quantco/glum) and [tabmat](https://github.com/Quantco/tabmat), which are optimized for fitting generalized linear models with sparse design matrices \citep{schmidt_glum_2025}.
-
----
 
 ## Results (high level)
 
@@ -59,8 +51,6 @@ On 4 datasets (mouse brain, mouse embryo, zebrafish head and human lymph node):
 - Better preserves biological structure present in global/large-scale count patterns.
 - Avoids artifacts (e.g., macro-stripes/edge effects/reversed DGE effects) observed with sequential quantile normalization.
 
----
-
 ## Installation
 
 This repo uses `pixi`.
@@ -68,8 +58,6 @@ This repo uses `pixi`.
 ```bash
 pixi install
 ```
-
----
 
 ## Experiments
 
