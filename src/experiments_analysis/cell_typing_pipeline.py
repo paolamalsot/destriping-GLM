@@ -281,30 +281,42 @@ def per_cell_spearman_with_gt(
 
 
 def per_cell_agreement_with_gt(
-    sdatas: dict[str, spatialAdata],
+    cell_type_dfs: dict[str, pd.DataFrame],
     gt_key: str = "ground_truth",
 ) -> pd.DataFrame:
     """
     Per-cell binary agreement of predicted_labels vs ground truth.
 
+    Parameters
+    ----------
+    cell_type_dfs : dict
+        ``{method_name: DataFrame}`` where each DataFrame has columns
+        ``predicted_labels`` and ``bin_count``, indexed by cell id.
+    gt_key : str
+        Key in *cell_type_dfs* to use as ground truth.
+
     Returns DataFrame with columns: method, cell_id, agreement, bin_count.
     """
-    shared = _shared_cell_index(sdatas)
-    gt_labels = sdatas[gt_key].adata.obs.loc[shared, "predicted_labels"].astype(str)
-    bin_count = sdatas[gt_key].adata.obs.loc[shared, "bin_count"]
+    indices = [df.index for df in cell_type_dfs.values()]
+    shared = indices[0]
+    for idx in indices[1:]:
+        shared = shared.intersection(idx)
+
+    gt_labels = cell_type_dfs[gt_key].loc[shared, "predicted_labels"].astype(str)
+    bin_count = cell_type_dfs[gt_key].loc[shared, "bin_count"]
 
     records = []
-    for name, sdata in sdatas.items():
+    for name, df in cell_type_dfs.items():
         if name == gt_key:
             continue
-        method_labels = sdata.adata.obs.loc[shared, "predicted_labels"].astype(str)
-        df = pd.DataFrame({
+        method_labels = df.loc[shared, "predicted_labels"].astype(str)
+        rec = pd.DataFrame({
             "method": name,
             "cell_id": shared,
             "agreement": (method_labels.values == gt_labels.values),
             "bin_count": bin_count.values,
         })
-        records.append(df)
+        records.append(rec)
     return pd.concat(records, ignore_index=True)
 
 
@@ -357,10 +369,17 @@ def compare_binned_data(
 
 
 def compare_cell_types(
-    sdatas: dict[str, spatialAdata],
+    cell_type_dfs: dict[str, pd.DataFrame],
 ) -> dict[str, pd.DataFrame]:
     """
     Compare cell-type assignments and confidence scores across methods.
+
+    Parameters
+    ----------
+    cell_type_dfs : dict
+        ``{method_name: DataFrame}`` where each DataFrame has columns
+        ``predicted_labels``, ``conf_score``, and ``bin_count``,
+        indexed by cell id.
 
     Returns
     -------
@@ -369,11 +388,14 @@ def compare_cell_types(
         ``"type_counts"`` – number of cells per type per method
         ``"conf_scores"`` – per-type median conf_score per method
     """
-    shared = _shared_cell_index(sdatas)
-    names = list(sdatas.keys())
+    indices = [df.index for df in cell_type_dfs.values()]
+    shared = indices[0]
+    for idx in indices[1:]:
+        shared = shared.intersection(idx)
+    names = list(cell_type_dfs.keys())
 
     # pairwise agreement
-    labels = {name: sdatas[name].adata.obs.loc[shared, "predicted_labels"].astype(str) for name in names}
+    labels = {name: cell_type_dfs[name].loc[shared, "predicted_labels"].astype(str) for name in names}
     agreement_records = []
     for i, n1 in enumerate(names):
         for n2 in names[i + 1 :]:
@@ -383,14 +405,14 @@ def compare_cell_types(
 
     # type counts
     type_counts = pd.DataFrame(
-        {name: sdatas[name].adata.obs.loc[shared, "predicted_labels"].value_counts() for name in names}
+        {name: cell_type_dfs[name].loc[shared, "predicted_labels"].value_counts() for name in names}
     ).fillna(0).astype(int)
     type_counts.index.name = "predicted_labels"
 
     # median confidence per type
     conf_parts = []
     for name in names:
-        obs = sdatas[name].adata.obs.loc[shared]
+        obs = cell_type_dfs[name].loc[shared]
         med = obs.groupby("predicted_labels")["conf_score"].median().rename(name)
         conf_parts.append(med)
     conf_scores = pd.concat(conf_parts, axis=1)
@@ -410,12 +432,12 @@ def compare_cell_types(
 def run_pipeline(
     sdata_path: str | Path,
     methods: dict[str, str | Path],
-    output_dir: str | Path = "results/my_notebooks/cell_typing_mouse_brain",
+    output_dir: str | Path = "results/my_notebooks_ISMB_revision/cell_typing_mouse_brain",
     labels_key: str = "labels_he",
     max_bin_distance: int = 0,
     cell_typing_model: str = "Mouse_Whole_Brain.pkl",
     count_col: str = "n_counts",
-) -> dict[str, spatialAdata]:
+) -> dict[str, pd.DataFrame]:
     """
     Full pipeline: rescale → bin2cell → cell-type for each method.
 
@@ -432,14 +454,14 @@ def run_pipeline(
 
     Returns
     -------
-    dict mapping method name → cell-level spatialAdata (with cell types).
+    dict mapping method name → DataFrame with cell-type info
+        (columns: predicted_labels, bin_count).
     """
     output_dir = Path(output_dir)
     logging.info("Loading original sdata from %s", sdata_path)
     sdata = load_spatialAdata(str(sdata_path))
 
-    cell_sdatas: dict[str, spatialAdata] = {}
-    paths_records = []
+    cell_type_dfs: dict[str, pd.DataFrame] = {}
 
     for name, df_path in methods.items():
         logging.info("Processing method: %s", name)
@@ -454,31 +476,19 @@ def run_pipeline(
             rescaled, labels_key=labels_key, max_bin_distance=max_bin_distance
         )
 
-        # save binned (pre cell-typing)
-        save_dir = output_dir / "binned_sdata" / name
-        save_dir.mkdir(parents=True, exist_ok=True)
-        cell_sdata.save(str(save_dir))
-        logging.info("  Saved binned sdata to %s", save_dir)
-
         # cell typing
         cell_sdata = run_cell_typing(cell_sdata, model=cell_typing_model)
 
-        # save with cell types
-        save_dir_ct = output_dir / "cell_typed_sdata" / name
-        save_dir_ct.mkdir(parents=True, exist_ok=True)
-        cell_sdata.save(str(save_dir_ct))
-        logging.info("  Saved cell-typed sdata to %s", save_dir_ct)
+        # save cell-type CSV
+        ct_df = cell_sdata.adata.obs[["predicted_labels", "conf_score", "bin_count"]].copy()
+        save_path = output_dir / "cell_types" / f"{name}.csv"
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        ct_df.to_csv(save_path)
+        logging.info("  Saved cell-type CSV to %s", save_path)
 
-        cell_sdatas[name] = cell_sdata
-        paths_records.append(
-            {"method": name, "binned_sdata_path": str(save_dir), "cell_typed_sdata_path": str(save_dir_ct)}
-        )
+        cell_type_dfs[name] = ct_df
 
-    paths_df = pd.DataFrame.from_records(paths_records)
-    paths_df.to_csv(output_dir / "paths.csv", index=False)
-    logging.info("Saved paths to %s", output_dir / "paths.csv")
-
-    return cell_sdatas
+    return cell_type_dfs
 
 
 def run_unsupervised_clustering(

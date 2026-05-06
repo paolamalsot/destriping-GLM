@@ -16,6 +16,85 @@ from src.utilities.custom_imshow import custom_imshow
 from src.utilities.matplotlib_utils import pad_axes_in_points
 
 
+_METHODS_WITHOUT_STRIPE_FACTOR_ESTIMATION = frozenset({
+    "b2c",
+    "bin-level norm.",
+})
+
+
+def filter_methods_with_stripe_factor_estimation(methods):
+    """Keep only methods that decompose striping into h, w stripe factors.
+
+    Excludes factor-free destriping methods (b2c, bin-level normalization) for
+    which a distance on the stripe factors is ill-defined.
+    """
+    return [m for m in methods if m not in _METHODS_WITHOUT_STRIPE_FACTOR_ESTIMATION]
+
+
+def _annotate_na_bars(ax, df, name_col, value_col, width=0.3, order=None):
+    """Mark x-categories whose every row is NaN with a square black cross.
+
+    The cross has width ``width`` in data units (on the x-axis); its height
+    in pixels is set equal to its pixel-width so the cross appears square,
+    clamped so it never exceeds the axes' vertical extent. The y-extent is
+    recomputed on every draw so subsequent layout changes (tight_layout,
+    pad_axes_in_points, etc.) don't squash or stretch the cross.
+    """
+    from matplotlib.transforms import blended_transform_factory
+
+    per_cat = df.groupby(name_col, observed=True)[value_col].apply(
+        lambda s: not np.any(np.isfinite(s.values))
+    )
+    if order is not None:
+        categories = list(order)
+    elif hasattr(df[name_col], "cat"):
+        categories = list(df[name_col].cat.categories)
+    else:
+        categories = list(df[name_col].drop_duplicates())
+
+    trans = blended_transform_factory(ax.transData, ax.transAxes)
+    crosses = []  # list of (x_pos, line_diag, line_anti)
+    for cat, is_na in per_cat.items():
+        if not is_na or cat not in categories:
+            continue
+        x_pos = categories.index(cat)
+        (line_a,) = ax.plot(
+            [x_pos - width / 2, x_pos + width / 2],
+            [0.0, 1.0],
+            color="black",
+            linewidth=1.5,
+            solid_capstyle="round",
+            transform=trans,
+            clip_on=False,
+            zorder=3,
+        )
+        (line_b,) = ax.plot(
+            [x_pos - width / 2, x_pos + width / 2],
+            [1.0, 0.0],
+            color="black",
+            linewidth=1.5,
+            solid_capstyle="round",
+            transform=trans,
+            clip_on=False,
+            zorder=3,
+        )
+        crosses.append((x_pos, line_a, line_b))
+
+    def _update_cross_heights(event=None):
+        x0_px = ax.transData.transform((0.0, 0.0))[0]
+        x1_px = ax.transData.transform((width, 0.0))[0]
+        width_px = abs(x1_px - x0_px)
+        height_frac = min(width_px / ax.bbox.height, 1.0)
+        y_low = 0.5 - height_frac / 2
+        y_high = 0.5 + height_frac / 2
+        for _, line_a, line_b in crosses:
+            line_a.set_ydata([y_low, y_high])
+            line_b.set_ydata([y_high, y_low])
+
+    _update_cross_heights()
+    ax.figure.canvas.mpl_connect("draw_event", _update_cross_heights)
+
+
 def barplot_distance_to_gt(
     metrics_df,
     methods,
@@ -34,9 +113,9 @@ def barplot_distance_to_gt(
     else:
         fig = ax.get_figure()
 
-    df_selection = df.loc[~df[name_metric].isna()]
+    # df_selection = df.loc[~df[name_metric].isna()]
+    df_selection = df
     df_selection["name"] = df_selection["name"].cat.remove_unused_categories()
-    print(df_selection.name.unique())
 
     kwargs = {
         "data": df_selection,
@@ -49,13 +128,14 @@ def barplot_distance_to_gt(
         "log_scale": True,
         "log": True,
         "alpha": 1.0,
-        "errcolor": "grey",
+        "err_kws":{'color': 'grey'},
         **kwargs,
     }
 
     sns.barplot(
         **kwargs
     )
+    _annotate_na_bars(ax, df_selection, "name", name_metric)
     ax.set_xlabel("")
     ax.set_ylabel("")
     ax.set_title(name_metric)
@@ -81,6 +161,7 @@ def barplots_distance_to_gt(
     df = metrics_df.copy()
     df = df[df["name"].isin(methods)]
     df["name"] = pd.Categorical(df["name"], categories=methods, ordered=True)
+    df["name"] = df["name"].cat.remove_unused_categories()
 
     if axes is None:
         fig, axes = plt.subplots(1, 2, figsize=(3.4 * 2, 2))
@@ -101,18 +182,23 @@ def barplots_distance_to_gt(
         log_scale=True,
         log=True,
         alpha=1.0,
-        errcolor="grey",
+        err_kws={"color": "grey"},
     )
+    _annotate_na_bars(axes[0], df, "name", name_error_in_corrected_counts)
     axes[0].set_xlabel("")
     axes[0].set_ylabel("")
     axes[0].set_title(name_error_in_corrected_counts)
     axes[0].tick_params(axis="x", rotation=30)
 
-    df_selection = df.loc[~df[name_error_in_stripe_factors].isna()]
-    df_selection["name"] = df_selection["name"].cat.remove_unused_categories()
+    stripe_factor_methods = filter_methods_with_stripe_factor_estimation(methods)
+    df_stripe = df[df["name"].isin(stripe_factor_methods)].copy()
+    df_stripe["name"] = pd.Categorical(
+        df_stripe["name"], categories=stripe_factor_methods, ordered=True
+    )
+    df_stripe["name"] = df_stripe["name"].cat.remove_unused_categories()
 
     sns.barplot(
-        data=df_selection,
+        data=df_stripe,
         x="name",
         y=name_error_in_stripe_factors,
         hue="name",
@@ -122,8 +208,9 @@ def barplots_distance_to_gt(
         log_scale=True,
         log=True,
         alpha=1.0,
-        errcolor="grey",
+        err_kws={"color": "grey"},
     )
+    _annotate_na_bars(axes[1], df_stripe, "name", name_error_in_stripe_factors)
     axes[1].set_title(name_error_in_stripe_factors)
     axes[1].tick_params(axis="x", rotation=30)
     axes[1].set_xlabel("")
@@ -448,7 +535,7 @@ def plot_compromise_striping_intensity_global_structure_alteration(
     else:
         fig_width = 3.4
     if ax is None:
-        fig, ax = plt.subplots(figsize=(fig_width, 2.4))
+        fig, ax = plt.subplots(figsize=(fig_width, 3.1))
 
     if colors is None:
         color = "black"
@@ -485,6 +572,15 @@ def plot_compromise_striping_intensity_global_structure_alteration(
         ax=ax,
         alpha = alpha
     )
+    if not (colors is None) and legend:
+        axis.get_figure().subplots_adjust(right=0.6, bottom = 0.2)
+        ax.legend(
+            loc="center left",
+            bbox_to_anchor=(1.05, 0.5),
+            # bbox_transform=plt.gcf().transFigure,
+        )
+
+    # ax.get_figure().tight_layout()
     linear_width_x = (
         comparison_table["striping intensity"]
         .loc[comparison_table["striping intensity"] > 0]
@@ -492,9 +588,9 @@ def plot_compromise_striping_intensity_global_structure_alteration(
     )
     factor_linear_width = 1
     #
-    # e = np.floor(np.log10(np.abs(linear_width_x))).astype(int)
+    e = np.floor(np.log10(np.abs(linear_width_x))).astype(int)
     # print(e)
-    # linear_width_x = np.power(10.0, e)
+    linear_width_x = np.power(10.0, e)
     axis.set_xscale(
         "symlog", linthresh=linear_width_x * factor_linear_width, linscale=0.25
     )
@@ -504,11 +600,11 @@ def plot_compromise_striping_intensity_global_structure_alteration(
         .loc[comparison_table["global structure alteration"] > 0]
         .min()
     )
-    # e = np.floor(np.log10(np.abs(linear_width_y))).astype(int)
+    e = np.floor(np.log10(np.abs(linear_width_y))).astype(int)
     # print(e)
-    # linear_width_y = np.power(10.0, e)
+    linear_width_y = np.power(10.0, e)
     axis.set_yscale(
-        "symlog", linthresh=linear_width_y * factor_linear_width, linscale=0.25
+        "symlog", linthresh=linear_width_y, linscale=0.5
     )
     # axis.set_yscale("asinh", linear_width=linear_width_y * factor_linear_width)
 
@@ -547,11 +643,10 @@ def plot_compromise_striping_intensity_global_structure_alteration(
             )
     axis.set_ylabel("Glob. Struct. Alt.")
     axis.grid()
-    axis.get_figure().tight_layout()
-    pad_axes_in_points(axis, pad_left=5, pad_right=50, pad_bottom=5, pad_top=20)
-    if not (colors is None) and legend:
-        axis.legend(loc="center left", bbox_to_anchor=(1.1, 0.5), frameon=True, title=None)
-    axis.get_figure().tight_layout()
+    # axis.get_figure().tight_layout()
+    pad_axes_in_points(axis, pad_left=7, pad_right=7, pad_bottom=7, pad_top=7)
+    # if not (colors is None) and legend:
+    #     axis.legend(loc="center left", bbox_to_anchor=(1.1, 0.5), frameon=True, title=None)
     return axis
 
 
@@ -642,6 +737,22 @@ def compromise_striping_intensity_global_structure_alteration(
         comparison_table = (
             comparison_table.set_index("model").loc[to_plot].reset_index()
         )
+
+    na_mask = comparison_table[
+        ["striping intensity", "global structure alteration"]
+    ].isna().any(axis=1)
+    if na_mask.any():
+        print(
+            f"[compromise_striping_intensity_global_structure_alteration] "
+            f"{int(na_mask.sum())} model(s) omitted (NaN in striping intensity "
+            f"or global structure alteration):"
+        )
+        for _, row in comparison_table[na_mask].iterrows():
+            print(
+                f"  - {row['model']}: "
+                f"striping intensity={row['striping intensity']}, "
+                f"global structure alteration={row['global structure alteration']}"
+            )
 
     axis = plot_compromise_striping_intensity_global_structure_alteration(
         comparison_table,
@@ -943,16 +1054,28 @@ def barplot_global_structure_alteration(
         .loc[distance_to_original_smoothed_table_sel["global structure alteration"] > 0]
         .min()
     )
-    axis.set_yscale("symlog", linthresh=linear_width_y, linscale=0.25)
+    e = np.floor(np.log10(np.abs(linear_width_y))).astype(int)
+    # print(e)
+    linear_width_y = np.power(10.0, e)
+    axis.set_yscale("symlog", linthresh=linear_width_y, linscale=0.5)
+    _annotate_na_bars(
+        axis,
+        distance_to_original_smoothed_table_sel,
+        "model",
+        "global structure alteration",
+        order=to_plot,
+    )
 
     ax.set_xlabel("")
-    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
+    ax.tick_params(axis="x", rotation=45)
+    for label in ax.get_xticklabels():
+        label.set_ha("right")
     if metric == "euclidean":
         ax.set_ylabel("Glob. Struct. Alt. \n (Euclidean)")
     else:
         ax.set_ylabel("Glob. Struct. Alt.")
     plt.tight_layout()
-    pad_axes_in_points(axis, pad_left=0, pad_right=0, pad_bottom=0, pad_top=20)
+    pad_axes_in_points(axis, pad_left=0, pad_right=0, pad_bottom=0, pad_top=2)
     if not (output_folder is None):
         if metric == "euclidean":
             path_figure = P(output_folder) / "barplot_global_structure_alteration_euclidean.pdf"

@@ -1,12 +1,16 @@
 [workspace]
-name = "glum_env_pixi"
-channels = ["https://repo.prefix.dev/glum","https://prefix.dev/conda-forge"]
+name = "destriping-GLM"
+description = "GLM-based destriping of 10x Genomics VisiumHD total-count images using nuclei segmentation."
+authors = ["Paola Malsot"]
+license = "MIT"
+readme = "README.md"
+channels = ["https://prefix.dev/conda-forge"]
 preview = ["pixi-build"]
 platforms = ["osx-arm64","linux-64"]
 
 [dependencies]
 python = "3.11.*"
-tabmat = { version = "4.1.2.post16.*", channel = "https://repo.prefix.dev/glum" }
+tabmat = "4.2.1.*"
 xsimd = "*"
 jemalloc = "*"
 cython = "*"
