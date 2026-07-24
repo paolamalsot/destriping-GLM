@@ -1,6 +1,6 @@
 # destriping-GLM
 
-This is a faster version of destriping-GLM (10x speedup 🚀). The earlier, slower implementation (as submitted to *Bioinformatics*, OUP) lives on the [`bioinformatics-OUP`](https://github.com/paolamalsot/destriping-GLM/tree/bioinformatics-OUP) branch; results are qualitatively the same.
+This is a faster version of destriping-GLM (10x speedup 🚀). The earlier, slower implementation (as submitted to *Bioinformatics*, OUP) lives on the [`bioinformatics-OUP`](https://github.com/paolamalsot/destriping-GLM/tree/bioinformatics-OUP) branch; results are qualitatively the same. To get the package based on this repo, visit [the destriper repository](https://github.com/paolamalsot/destriper) or run `pip install destriper`.
 
 ## Motivation
 
